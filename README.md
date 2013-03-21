@@ -16,8 +16,7 @@ All other files/directories are just supporting npm/bundler, build, or documenta
     lib - bundler
     src - source code
     tests - tests written for Mocha on node.js
-    vendor/assets/javascripts - symlink to src
-    grunt.js - js build tool
+    vendor/assets/javascripts/* - symlinks to src with .module added before extension
     index.js - npm
     package.json - npm
     tandem.gemspec - bundler
@@ -27,8 +26,7 @@ All other files/directories are just supporting npm/bundler, build, or documenta
 
 Until we write a script, version numbers will have to be updated in the following files:
 
-- lib/tandem/version.rb
-- grunt.js
+- lib/tandem-core-rails/version.rb
 - package.json
 
 

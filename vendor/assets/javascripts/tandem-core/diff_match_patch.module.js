@@ -1,0 +1,1 @@
+../../../../src/diff_match_patch.js

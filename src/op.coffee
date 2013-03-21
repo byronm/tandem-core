@@ -1,6 +1,3 @@
-_ = require('underscore')._ if module?
-
-
 # TODO fix code duplication
 isInsert = (i) ->
   return i? && typeof i.value == "string"

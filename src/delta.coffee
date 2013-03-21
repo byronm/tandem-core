@@ -1,13 +1,10 @@
-_                 = require('underscore')._ if module?
-diff_match_patch  = require('googlediff') if module?
-Op                = require('./op') if module?
-InsertOp          = require('./insert') if module?
-RetainOp          = require('./retain') if module?
+diff_match_patch  = require('./diff_match_patch')
+Op                = require('./op')
+InsertOp          = require('./insert')
+RetainOp          = require('./retain')
+
 
 dmp = new diff_match_patch()
-dmp.DIFF_DELETE = -1
-dmp.DIFF_EQUAL  = 0
-dmp.DIFF_INSERT = 1
 
 
 class Delta
@@ -230,13 +227,13 @@ class Delta
       # For each difference apply them separately so we do not disrupt the cursor
       for [operation, value] in diff
         switch operation
-          when dmp.DIFF_DELETE
+          when diff_match_patch.DIFF_DELETE
             # Deletes implied
             originalLength += value.length
-          when dmp.DIFF_INSERT
+          when diff_match_patch.DIFF_INSERT
             ops.push(new InsertOp(value))
             finalLength += value.length
-          when dmp.DIFF_EQUAL
+          when diff_match_patch.DIFF_EQUAL
             ops.push(new RetainOp(originalLength, originalLength + value.length))
             originalLength += value.length
             finalLength += value.length
