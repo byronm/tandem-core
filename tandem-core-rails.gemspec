@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/tandem-rails/version', __FILE__)
+require File.expand_path('../lib/tandem-core-rails/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Jason Chen", "Byron Milligan"]

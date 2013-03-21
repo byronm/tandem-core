@@ -5,7 +5,7 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     meta: {
-      version: '0.0.1',
+      version: '0.0.2',
       banner: 
         '/*! Tandem Core - v<%= meta.version %> - <%= grunt.template.today("yyyy-mm-dd") %>\n' +
         ' *  https://www.stypi.com/\n' +

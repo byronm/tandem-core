@@ -9,5 +9,3 @@ coverage:
 	@jscoverage src-js src-js-cov
 	@TANDEM_COV=1 $(MAKE) test REPORTER=html-cov > coverage.html
 	@rm -rf src-js src-js-cov
-
-.PHONY: test

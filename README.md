@@ -1,4 +1,4 @@
-Tandem Realtime Coauthoring Engine
+Tandem Core
 ===
 
 This repository is also both a Rails gem and a Node.js module.
