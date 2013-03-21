@@ -1,8 +1,8 @@
 _                 = require('underscore')._ if module?
-diff_match_patch  = require('googlediff')
-Op                = require('./op')
-InsertOp          = require('./insert')
-RetainOp          = require('./retain')
+diff_match_patch  = require('googlediff') if module?
+Op                = require('./op') if module?
+InsertOp          = require('./insert') if module?
+RetainOp          = require('./retain') if module?
 
 dmp = new diff_match_patch()
 dmp.DIFF_DELETE = -1

@@ -1,4 +1,4 @@
-require "tandem-rails/version"
+require "tandem-core-rails/version"
 
 module Tandem
   module Rails

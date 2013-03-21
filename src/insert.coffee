@@ -1,5 +1,5 @@
 _  = require('underscore')._ if module?
-Op = require('./op')
+Op = require('./op') if module?
 
 
 class InsertOp extends Op

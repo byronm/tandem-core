@@ -5,9 +5,9 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     meta: {
-      version: '0.4.5',
+      version: '0.0.1',
       banner: 
-        '/*! Tandem Realtime Coauthoring Engine - v<%= meta.version %> - <%= grunt.template.today("yyyy-mm-dd") %>\n' +
+        '/*! Tandem Core - v<%= meta.version %> - <%= grunt.template.today("yyyy-mm-dd") %>\n' +
         ' *  https://www.stypi.com/\n' +
         ' *  Copyright (c) <%= grunt.template.today("yyyy") %>\n' +
         ' *  Jason Chen, Salesforce.com\n' +

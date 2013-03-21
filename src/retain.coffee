@@ -1,5 +1,5 @@
 _  = require('underscore')._ if module?
-Op = require('./op')
+Op = require('./op') if module?
 
 
 # Used to represent retains in the delta. [inclusive, exclusive)
