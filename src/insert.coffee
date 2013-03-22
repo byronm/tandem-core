@@ -1,4 +1,4 @@
-Op = require('./op')
+Op = require('./op.coffee')
 
 
 class InsertOp extends Op

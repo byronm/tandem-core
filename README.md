@@ -17,9 +17,10 @@ All other files/directories are just supporting npm/bundler, build, or documenta
     src - source code
     tests - tests written for Mocha on node.js
     vendor/assets/javascripts/* - symlinks to src with .module added before extension
+    delta.js - entry point for tandem/scribe coffeeify
     index.js - npm
     package.json - npm
-    tandem.gemspec - bundler
+    tandem-core-rails.gemspec - bundler
     
 
 ### Version numbers

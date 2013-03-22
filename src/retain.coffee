@@ -1,4 +1,4 @@
-Op = require('./op') 
+Op = require('./op.coffee') 
 
 
 # Used to represent retains in the delta. [inclusive, exclusive)
