@@ -415,11 +415,11 @@ class Delta
       return Delta.isInsert(op)
     )
 
+  # XXX: Can we remove normalize all together? We currently seem to rely on it
+  # deep copying the ops...
   normalize: ->
     normalizedOps = _.map(@ops, (op) ->
       switch typeof op
-        when 'string' then return new InsertOp(op)
-        when 'number' then return new RetainOp(op, op + 1)
         when 'object'
           if Delta.isInsert(op)
             return new InsertOp(op.value, op.attributes)
