@@ -1,22 +1,16 @@
 {
-  "name": "tandem",
-  "version": "0.4.5",
+  "name": "tandem-core",
+  "version": "0.1.2",
   "dependencies": {
-    "async"     : "0.1.x",
-    "googlediff": "0.1.0",
-    "redis"     : "0.8.x",
-    "request"   : "2.12.x",
-    "socket.io" : "0.9.x",
     "underscore": "1.4.x"
   },
   "devDependencies": {
-    "browserify"           : "2.2.x",
     "chai"                 : "1.4.x",
-    "coffee-script"        : "1.4.x",
-    "commander"            : "1.1.x",
-    "grunt-browserify"     : "0.1.x",
+    "coffee-script"        : "1.6.x",
+    "commander"            : "0.6.x",
     "mocha"                : "1.8.x"
   },
+  "browser": "browser",
   "main": "index",
   "engines": {
     "node": ">=0.8"
