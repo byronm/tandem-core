@@ -139,7 +139,6 @@ class Delta
 
     composed = []
     for elem in deltaB.ops
-      elem = new InsertOp(elem) if typeof elem == 'string'
       if Delta.isInsert(elem)
         composed.push(elem)
       else if Delta.isRetain(elem)
