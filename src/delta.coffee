@@ -92,11 +92,11 @@ class Delta
     delta = this
     console.assert(text.length == delta.startLength, "Start length of delta: " + delta.startLength + " is not equal to the text: " + text.length)
     appliedText = []
-    for elem in delta.ops
-      if Delta.isInsert(elem)
-        appliedText.push(elem.value)
+    for op in delta.ops
+      if Delta.isInsert(op)
+        appliedText.push(op.value)
       else
-        appliedText.push(text.substring(elem.start, elem.end))
+        appliedText.push(text.substring(op.start, op.end))
     result = appliedText.join("")
     if delta.endLength != result.length
       console.log "Delta", delta
