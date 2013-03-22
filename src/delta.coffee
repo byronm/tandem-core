@@ -138,16 +138,16 @@ class Delta
     deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops)
 
     composed = []
-    for elem in deltaB.ops
-      if Delta.isInsert(elem)
-        composed.push(elem)
-      else if Delta.isRetain(elem)
-        opsInRange = deltaA.getOpsAt(elem.start, elem.end - elem.start)
-        opsInRange = _.map(opsInRange, (op) ->
-          if Delta.isInsert(op)
-            return new InsertOp(op.value, op.composeAttributes(elem.attributes))
+    for opInB in deltaB.ops
+      if Delta.isInsert(opInB)
+        composed.push(opInB)
+      else if Delta.isRetain(opInB)
+        opsInRange = deltaA.getOpsAt(opInB.start, opInB.end - opInB.start)
+        opsInRange = _.map(opsInRange, (opInA) ->
+          if Delta.isInsert(opInA)
+            return new InsertOp(opInA.value, opInA.composeAttributes(opInB.attributes))
           else
-            return new RetainOp(op.start, op.end, op.composeAttributes(elem.attributes))
+            return new RetainOp(opInA.start, opInA.end, opInA.composeAttributes(opInB.attributes))
         )
         composed = composed.concat(opsInRange)
       else
