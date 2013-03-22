@@ -37,7 +37,7 @@ class Delta
     return InsertOp.isInsert(op)
 
   @isRetain: (op) ->
-    return RetainOp.isRetain(op) || typeof(op) == "number"
+    return RetainOp.isRetain(op)
 
   @makeDelta: (obj) ->
     return new Delta(obj.startLength, obj.endLength, obj.ops)
