@@ -1,10 +1,8 @@
 assert     = require('chai').assert
-_          = require('underscore')._
-Tandem     = require('../index')
-Delta      = Tandem.Delta
-InsertOp   = Tandem.InsertOp
-RetainOp   = Tandem.RetainOp
-DeltaGen   = require('./test_helper')
+Delta      = require('../src/delta')
+InsertOp   = require('../src/insert')
+RetainOp   = require('../src/retain')
+DeltaGen   = require('../src/delta_generator')
 
 ##############################
 # Test decompose
