@@ -135,7 +135,7 @@ class DeltaGenerator
     opIndex = _.random(0, finalIndex)
     rand = Math.random()
     if rand < 0.5
-      opLength = getRandomLength()
+      opLength = this.getRandomLength()
       this.insertAt(newDelta, opIndex, this.getRandomString(alphabet, opLength))
     else if rand < 0.75
       opLength = _.random(1, finalIndex - opIndex)
