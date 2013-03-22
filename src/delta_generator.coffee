@@ -1,9 +1,7 @@
 assert     = require('chai').assert
-_          = require('underscore')._
-Tandem     = require('../index')
-Delta      = Tandem.Delta
-InsertOp   = Tandem.InsertOp
-RetainOp   = Tandem.RetainOp
+Delta      = require('./delta')
+InsertOp   = require('./insert')
+RetainOp   = require('./retain')
 
 class DeltaGenerator
   @getRandomString = (alphabet, length) ->
