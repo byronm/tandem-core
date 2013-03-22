@@ -1,6 +1,6 @@
 {
   "name": "tandem-core",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "dependencies": {
     "underscore": "1.4.x"
   },
@@ -10,6 +10,7 @@
     "commander"            : "0.6.x",
     "mocha"                : "1.8.x"
   },
+  "browser": "browser",
   "main": "index",
   "engines": {
     "node": ">=0.8"

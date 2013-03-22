@@ -1,7 +1,7 @@
-diff_match_patch  = require('./diff_match_patch.js')
-Op                = require('./op.coffee')
-InsertOp          = require('./insert.coffee')
-RetainOp          = require('./retain.coffee')
+diff_match_patch  = require('./diff_match_patch')
+Op                = require('./op')
+InsertOp          = require('./insert')
+RetainOp          = require('./retain')
 
 
 dmp = new diff_match_patch()
