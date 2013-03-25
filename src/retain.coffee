@@ -21,6 +21,9 @@ class RetainOp extends Op
   getLength: ->
     return @end - @start
 
+  isEqual: (other) ->
+    return other? and @start == other.start and @end == other.end and _.isEqual(@attributes, other.attributes)
+
   split: (offset) ->
     console.assert(offset <= @end, "Split called with offset beyond end of retain")
     left = new RetainOp(@start, @start + offset, @attributes)
