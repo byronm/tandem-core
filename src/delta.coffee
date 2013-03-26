@@ -56,7 +56,7 @@ class Delta
       @endLength = length
 
   # insertFn(index, text), deleteFn(index, length), applyAttrFn(index, length, attribute, value)
-  apply: (insertFn, deleteFn, applyAttrFn, context = null) ->
+  apply: (insertFn = (->), deleteFn = (->), applyAttrFn = (->), context = null) ->
     return if this.isIdentity()
     index = 0       # Stores where the last retain end was, so if we see another one, we know to delete
     offset = 0      # Tracks how many characters inserted to correctly offset new text
