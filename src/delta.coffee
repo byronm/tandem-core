@@ -423,6 +423,24 @@ class Delta
     )
     @ops = _.reject(normalizedOps, (op) -> !op? || op.getLength() == 0)
 
+  split: (index) ->
+    console.assert this.isInsertsOnly(), "Split only implemented for inserts only"
+    console.assert 0 <= index and index <= @endLength, "Split at invalid index"
+    leftOps = []
+    rightOps = []
+    _.reduce(@ops, (offset, op) ->
+      if offset + op.getLength() <= index
+        leftOps.push(InsertOp.copy(op))
+      else if offset >= index
+        rightOps.push(InsertOp.copy(op))
+      else
+        [left, right] = op.split(index - offset)
+        leftOps.push(left)
+        rightOps.push(right)
+      return offset + op.getLength()
+    , 0)
+    return [new Delta(0, leftOps), new Delta(0, rightOps)]
+
   toString: ->
     return "{(#{@startLength}->#{@endLength}) [#{@ops.join(', ')}]}"
 
