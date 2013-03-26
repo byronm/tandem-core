@@ -219,7 +219,13 @@ class Delta
     return deltaB
 
   diff: (other) ->
-    diffToDelta = (diff) ->
+    [textA, textC] = _.map([this, other], (delta) ->
+      return _.map(delta.ops, (op) ->
+        return if op.value? then op.value else ""
+      ).join('')
+    )
+    unless textA == '' and textC == ''
+      diff = dmp.diff_main(textA, textC)
       console.assert(diff.length > 0, "diffToDelta called with diff with length <= 0")
       originalLength = 0
       finalLength = 0
@@ -237,22 +243,7 @@ class Delta
             ops.push(new RetainOp(originalLength, originalLength + value.length))
             originalLength += value.length
             finalLength += value.length
-      return new Delta(originalLength, finalLength, ops)
-
-    deltaToText = (delta) ->
-      return _.map(delta.ops, (op) ->
-        return if op.value? then op.value else ""
-      ).join('')
-
-    diffTexts = (oldText, newText) ->
-      diff = dmp.diff_main(oldText, newText)
-      return diff
-
-    textA = deltaToText(this)
-    textC = deltaToText(other)
-    unless textA == '' and textC == ''
-      diff = diffTexts(textA, textC)
-      insertDelta = diffToDelta(diff)
+      insertDelta = new Delta(originalLength, finalLength, ops)
     else
       insertDelta = new Delta(0, 0, [])
     return insertDelta
