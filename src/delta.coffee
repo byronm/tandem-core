@@ -390,9 +390,11 @@ class Delta
 
   isEqual: (other) ->
     return false unless other
-    keys = ['startLength', 'endLength', 'ops']
-    return _.isEqual(_.pick(this, keys...),
-                     _.pick(other, keys...))
+    return false if @startLength != other.startLength or @endLength != other.endLength
+    return false if !_.isArray(other.ops) or @ops.length != other.ops.length
+    return _.all(@ops, (op, i) ->
+      op.isEqual(other.ops[i])
+    )
 
   isIdentity: ->
     if @startLength == @endLength

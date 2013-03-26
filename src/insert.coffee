@@ -17,6 +17,9 @@ class InsertOp extends Op
   getLength: ->
     return @value.length
 
+  isEqual: (other) ->
+    return other? and @value == other.value and _.isEqual(@attributes, other.attributes)
+
   join: (other) ->
     if _.isEqual(@attributes, other.attributes)
       return new InsertOp(@value + second.value, @attributes)
