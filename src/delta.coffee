@@ -408,6 +408,13 @@ class Delta
       return Delta.isInsert(op)
     )
 
+  merge: (other) ->
+    console.assert this.isInsertsOnly() and other.isInsertsOnly(), "Merge only implemented for inserts only"
+    thisCopy = Delta.copy(this)
+    otherCopy = Delta.copy(other)
+    ops = thisCopy.ops.concat(otherCopy.ops)
+    return new Delta(0, ops)
+
   normalize: ->
     normalizedOps = _.map(@ops, (op) ->
       switch typeof op
