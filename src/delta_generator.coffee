@@ -85,7 +85,7 @@ class DeltaGenerator
         ops.push(tail) if tail.getLength() > 0
         for attr in attrs
           switch attr
-            when 'bold', 'italics'
+            when 'bold', 'italic'
               if Delta.isInsert(cur)
                 if cur.attributes[attr]?
                   delete cur.attributes[attr]
@@ -102,8 +102,8 @@ class DeltaGenerator
                     cur.attributes[attr] = null
                   else
                     cur.attributes[attr] = true
-            when 'fontsize'
-              getRandFontSize = -> Math.floor(Math.random() * 24)
+            when 'size'
+              getRandFontSize = -> ['huge', 'large', 'small'][_.random(0, 2)]
               if Delta.isInsert(cur)
                 cur.attributes[attr] = getRandFontSize()
               else
@@ -139,7 +139,7 @@ class DeltaGenerator
       opLength = _.random(1, finalIndex - opIndex)
       this.deleteAt(newDelta, opIndex, opLength)
     else
-      attributes = ["bold", "italics", "fontsize"]
+      attributes = ["bold", "italic", "size"]
       # Pick a random number of random attributes
       attributes.sort(-> return 0.5 - Math.random())
       numAttrs = _.random(0, attributes.length)
