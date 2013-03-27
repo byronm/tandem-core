@@ -409,11 +409,15 @@ class Delta
     )
 
   merge: (other) ->
-    console.assert this.isInsertsOnly() and other.isInsertsOnly(), "Merge only implemented for inserts only"
     thisCopy = Delta.copy(this)
     otherCopy = Delta.copy(other)
+    _.each(otherCopy.ops, (op) ->
+      if RetainOp.isRetain(op)
+        op.start += thisCopy.startLength
+        op.end += thisCopy.startLength
+    )
     ops = thisCopy.ops.concat(otherCopy.ops)
-    return new Delta(0, ops)
+    return new Delta(thisCopy.startLength + otherCopy.startLength, ops)
 
   normalize: ->
     normalizedOps = _.map(@ops, (op) ->
