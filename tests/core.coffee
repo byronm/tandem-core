@@ -142,10 +142,10 @@ describe('decompose', ->
     deltaA = new Delta(0, 0, [])
     deltaC = new Delta(0, 6, [new InsertOp("ab"),
                               new InsertOp("cd", {bold: true}),
-                              new InsertOp("ef", {italics: true})])
+                              new InsertOp("ef", {italic: true})])
     expectedDecomposed = new Delta(0, 6, [new InsertOp("ab"),
                                           new InsertOp("cd", {bold: true}),
-                                          new InsertOp("ef", {italics: true})])
+                                          new InsertOp("ef", {italic: true})])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
@@ -153,21 +153,21 @@ describe('decompose', ->
     deltaA = new Delta(0, 2, [new InsertOp("ab")])
     deltaC = new Delta(0, 6, [new InsertOp("ab"),
                               new InsertOp("cd", {bold: true}),
-                              new InsertOp("ef", {italics: true})])
+                              new InsertOp("ef", {italic: true})])
     expectedDecomposed = new Delta(2, 6, [new RetainOp(0, 2),
                                           new InsertOp("cd", {bold: true}),
-                                          new InsertOp("ef", {italics: true})])
+                                          new InsertOp("ef", {italic: true})])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
   it('should retain text with attributes when attribution changes have been made', ->
     deltaA = new Delta(0, 6, [new InsertOp("abcdef")])
     deltaC = new Delta(0, 6, [new InsertOp("a", {bold: true}),
-                              new InsertOp("b", {bold: true, italics: true}),
+                              new InsertOp("b", {bold: true, italic: true}),
                               new InsertOp("cd", {underline: true}),
                               new InsertOp("ef")])
     expectedDecomposed = new Delta(6, 6, [new RetainOp(0, 1, {bold: true}),
-                                          new RetainOp(1, 2, {bold:true, italics: true}),
+                                          new RetainOp(1, 2, {bold:true, italic: true}),
                                           new RetainOp(2, 4, {underline: true}),
                                           new RetainOp(4, 6)])
     testDecompose(deltaA, deltaC, expectedDecomposed)
@@ -561,8 +561,8 @@ describe('compose', ->
   )
 
   it('should delete the head with attribution', ->
-    deltaA = new Delta(0, 11, [new InsertOp("bold", {bold: true}), new InsertOp("italics", {italics: true})])
-    deltaC = new Delta(0, 7, [new InsertOp("italics", {italics: true})])
+    deltaA = new Delta(0, 11, [new InsertOp("bold", {bold: true}), new InsertOp("italics", {italic: true})])
+    deltaC = new Delta(0, 7, [new InsertOp("italics", {italic: true})])
     decomposed = deltaC.decompose(deltaA)
     composed = deltaA.compose(decomposed)
     assert(composed.isEqual(deltaC))
@@ -1277,8 +1277,8 @@ assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
 delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 0, 1, ["bold", "italics"], reference)
-expected = new Delta(3, 6, [new InsertOp("a", {italics: true}), new InsertOp("bc", {bold: true}), new RetainOp(0, 3)])
+DeltaGen.formatAt(delta, 0, 1, ["bold", "italic"], reference)
+expected = new Delta(3, 6, [new InsertOp("a", {italic: true}), new InsertOp("bc", {bold: true}), new RetainOp(0, 3)])
 assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
@@ -1289,8 +1289,8 @@ assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
 delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 0, 2, ["bold", "italics"], reference)
-expected = new Delta(3, 6, [new InsertOp("ab", {italics: true}), new InsertOp("c", {bold: true}), new RetainOp(0, 3)])
+DeltaGen.formatAt(delta, 0, 2, ["bold", "italic"], reference)
+expected = new Delta(3, 6, [new InsertOp("ab", {italic: true}), new InsertOp("c", {bold: true}), new RetainOp(0, 3)])
 assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
@@ -1301,8 +1301,8 @@ assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
 delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 1, 2, ["bold", "italics"], reference)
-expected = new Delta(3, 6, [new InsertOp("a", {bold: true}), new InsertOp("bc", {italics: true}), new RetainOp(0, 3)])
+DeltaGen.formatAt(delta, 1, 2, ["bold", "italic"], reference)
+expected = new Delta(3, 6, [new InsertOp("a", {bold: true}), new InsertOp("bc", {italic: true}), new RetainOp(0, 3)])
 assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
@@ -1313,20 +1313,20 @@ assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
 delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 2, 1, ["bold", "italics"], reference)
-expected = new Delta(3, 6, [new InsertOp("ab", {bold: true}), new InsertOp("c", {italics: true}), new RetainOp(0, 3)])
+DeltaGen.formatAt(delta, 2, 1, ["bold", "italic"], reference)
+expected = new Delta(3, 6, [new InsertOp("ab", {bold: true}), new InsertOp("c", {italic: true}), new RetainOp(0, 3)])
 assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
 delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 0, 3, ["italics"], reference)
-expected = new Delta(3, 6, [new InsertOp("abc", {bold: true, italics: true}), new RetainOp(0, 3)])
+DeltaGen.formatAt(delta, 0, 3, ["italic"], reference)
+expected = new Delta(3, 6, [new InsertOp("abc", {bold: true, italic: true}), new RetainOp(0, 3)])
 assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
 delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 2, 1, ["italics"], reference)
-expected = new Delta(3, 6, [new InsertOp("ab", {bold: true}), new InsertOp("c", {bold: true, italics: true}), new RetainOp(0, 3)])
+DeltaGen.formatAt(delta, 2, 1, ["italic"], reference)
+expected = new Delta(3, 6, [new InsertOp("ab", {bold: true}), new InsertOp("c", {bold: true, italic: true}), new RetainOp(0, 3)])
 assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
@@ -1337,8 +1337,8 @@ assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
 delta = new Delta(3, 3, [new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 1, 1, ["bold", "italics"], reference)
-expected = new Delta(3, 3, [new RetainOp(0, 1), new RetainOp(1, 2, {bold: null, italics: true}), new RetainOp(2, 3)])
+DeltaGen.formatAt(delta, 1, 1, ["bold", "italic"], reference)
+expected = new Delta(3, 3, [new RetainOp(0, 1), new RetainOp(1, 2, {bold: null, italic: true}), new RetainOp(2, 3)])
 assert(delta.isEqual(expected, "Expected #{expected} but got #{delta}"))
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
@@ -1355,8 +1355,8 @@ assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
 delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 3, 3, ["bold", "italics"], reference)
-expected = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3, {bold: null, italics: true})])
+DeltaGen.formatAt(delta, 3, 3, ["bold", "italic"], reference)
+expected = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3, {bold: null, italic: true})])
 assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
@@ -1419,7 +1419,7 @@ describe('Fuzzers', ->
       for j in [0...10]
         indexToFormat = _.random(0, deltaA.endLength - 1)
         numToFormat = _.random(0, deltaA.endLength - indexToFormat - 1)
-        attributes = ["bold", "italics", "fontsize"]
+        attributes = ["bold", "italic", "size"]
         # Pick a random number of random attributes
         attributes.sort(-> return 0.5 - Math.random())
         numAttrs = Math.floor(Math.random() * (attributes.length + 1))

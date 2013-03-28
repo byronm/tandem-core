@@ -4,6 +4,18 @@ InsertOp   = require('./insert')
 RetainOp   = require('./retain')
 
 class DeltaGenerator
+  @constants =
+    attributes:
+      'bold'      : [true, false],
+      'italic'    : [true, false],
+      # 'link'      : [true, false],
+      'strike'    : [true, false],
+      # 'family'    : ['monospace', 'serif'],
+      # 'color'     : ['black', 'blue', 'green', 'orange', 'red', 'white', 'yellow'],
+      'size'      : ['huge', 'large', 'small'],
+      # 'background': ['black', 'blue', 'green', 'orange', 'purple', 'red', 'white', 'yellow']
+    alphabet: "abcdefghijklmnopqrstuvwxyz"
+
   @getRandomString = (alphabet, length) ->
     return _.map([0..(length - 1)], ->
       return alphabet[_.random(0, alphabet.length - 1)]
@@ -85,7 +97,7 @@ class DeltaGenerator
         ops.push(tail) if tail.getLength() > 0
         for attr in attrs
           switch attr
-            when 'bold', 'italic'
+            when 'bold', 'italic', 'underline', 'strike', 'link'
               if Delta.isInsert(cur)
                 if cur.attributes[attr]?
                   delete cur.attributes[attr]
@@ -103,7 +115,7 @@ class DeltaGenerator
                   else
                     cur.attributes[attr] = true
             when 'size'
-              getRandFontSize = -> ['huge', 'large', 'small'][_.random(0, 2)]
+              getRandFontSize = => _.first(_.shuffle(@constants.attributes['size']))
               if Delta.isInsert(cur)
                 cur.attributes[attr] = getRandFontSize()
               else
@@ -132,18 +144,18 @@ class DeltaGenerator
     finalIndex = startDelta.endLength - 1
     opIndex = _.random(0, finalIndex)
     rand = Math.random()
-    if rand < 0.5
+    if rand < 0.75
       opLength = this.getRandomLength()
-      this.insertAt(newDelta, opIndex, this.getRandomString(alphabet, opLength))
-    else if rand < 0.75
+      this.insertAt(newDelta,
+                    opIndex,
+                    this.getRandomString(@constants.alphabet, opLength))
+    else if rand < 0.76
       opLength = _.random(1, finalIndex - opIndex)
       this.deleteAt(newDelta, opIndex, opLength)
     else
-      attributes = ["bold", "italic", "size"]
-      # Pick a random number of random attributes
-      attributes.sort(-> return 0.5 - Math.random())
-      numAttrs = _.random(0, attributes.length)
-      attrs = attributes.slice(0, numAttrs)
+      shuffled_attrs = _.shuffle(_.keys(@constants.attributes))
+      numAttrs = _.random(1, shuffled_attrs.length)
+      attrs = shuffled_attrs.slice(0, numAttrs)
       opLength = _.random(1, finalIndex - opIndex)
       this.formatAt(newDelta, opIndex, opLength, attrs, startDelta)
     return newDelta
