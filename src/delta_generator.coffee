@@ -87,11 +87,32 @@ class DeltaGenerator
           cur = new InsertOp(curStr, _.clone(elem.attributes))
           tailStr = elem.value.substring(formatPoint - charIndex + curFormat)
           tail = new InsertOp(tailStr, _.clone(elem.attributes))
+          # Sanitize for \n's, which we don't want to format
+          if curStr.indexOf('\n') != -1
+            console.info "SPLITTING INSERT"
+            newCur = curStr.substring(0, curStr.indexOf('\n'))
+            tailStr = curStr.substring(curStr.indexOf('\n')) + tailStr
+            cur = new InsertOp(curStr, _.clone(elem.attributes))
+            tail = new InsertOp(tailStr, _.clone(elem.attributes))
         else
           console.assert(Delta.isRetain(elem), "Expected retain but got #{elem}")
           head = new RetainOp(elem.start, elem.start + formatPoint - charIndex, _.clone(elem.attributes))
           cur = new RetainOp(head.end, head.end + curFormat, _.clone(elem.attributes))
           tail = new RetainOp(cur.end, elem.end, _.clone(elem.attributes))
+          origOps = reference.getOpsAt(cur.start, cur.getLength())
+          marker = cur.start
+          _.each(origOps, (op, i) ->
+            if Delta.isInsert(op)
+              if op.value.indexOf('\n') != -1
+                console.info "SPLITTING RETAIN"
+                console.assert(marker == cur.start, "Marker is: #{marker} but cur.start is: #{cur.start}")
+                cur = new RetainOp(cur.start, marker + op.value.indexOf('\n'), _.clone(cur.attributes))
+                tail = new RetainOp(marker + op.value.indexOf('\n'), tail.end, _.clone(tail.attributes))
+              else
+                marker += op.getLength()
+            else
+              console.assert "Got retainOp in reference delta!"
+          )
         ops.push(head) if head.getLength() > 0
         ops.push(cur)
         ops.push(tail) if tail.getLength() > 0
