@@ -14,7 +14,7 @@ class DeltaGenerator
       # 'color'     : ['black', 'blue', 'green', 'orange', 'red', 'white', 'yellow'],
       'size'      : ['huge', 'large', 'small'],
       # 'background': ['black', 'blue', 'green', 'orange', 'purple', 'red', 'white', 'yellow']
-    alphabet: "abcdefghijklmnopqrstuvwxyz"
+    alphabet: "abcdefghijklmnopqrstuvwxyz\n"
 
   @getRandomString = (alphabet, length) ->
     return _.map([0..(length - 1)], ->
@@ -144,12 +144,14 @@ class DeltaGenerator
     finalIndex = startDelta.endLength - 1
     opIndex = _.random(0, finalIndex)
     rand = Math.random()
-    if rand < 0.75
+    if rand < 0.5
       opLength = this.getRandomLength()
       this.insertAt(newDelta,
                     opIndex,
                     this.getRandomString(@constants.alphabet, opLength))
-    else if rand < 0.76
+    else if rand < 0.75
+      return newDelta if startDelta.endLength - startDelta.startLength <= 1
+      opIndex = _.random(0, finalIndex - 1) # Scribe doesn't like us deleting the final \n
       opLength = _.random(1, finalIndex - opIndex)
       this.deleteAt(newDelta, opIndex, opLength)
     else
