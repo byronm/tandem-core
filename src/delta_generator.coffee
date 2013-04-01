@@ -161,7 +161,7 @@ class DeltaGenerator
     delta.ops = ops
     delta.compact()
 
-  @addRandomOp: (newDelta, startDelta, alphabet) ->
+  @addRandomOp: (newDelta, startDelta) ->
     finalIndex = startDelta.endLength - 1
     opIndex = _.random(0, finalIndex)
     rand = Math.random()
@@ -190,7 +190,7 @@ class DeltaGenerator
                                        startDelta.endLength)])
     numOps or= _.random(1, 10)
     for i in [0...numOps]
-      @addRandomOp(newDelta, startDelta, alphabet)
+      @addRandomOp(newDelta, startDelta)
     return newDelta
 
 module.exports = DeltaGenerator
