@@ -89,7 +89,6 @@ class DeltaGenerator
           tail = new InsertOp(tailStr, _.clone(elem.attributes))
           # Sanitize for \n's, which we don't want to format
           if curStr.indexOf('\n') != -1
-            console.info "SPLITTING INSERT"
             newCur = curStr.substring(0, curStr.indexOf('\n'))
             tailStr = curStr.substring(curStr.indexOf('\n')) + tailStr
             cur = new InsertOp(curStr, _.clone(elem.attributes))
@@ -100,12 +99,11 @@ class DeltaGenerator
           cur = new RetainOp(head.end, head.end + curFormat, _.clone(elem.attributes))
           tail = new RetainOp(cur.end, elem.end, _.clone(elem.attributes))
           origOps = reference.getOpsAt(cur.start, cur.getLength())
+          console.assert(_.every(origOps, (op) -> Delta.isInsert(op)), "Non insert op in backref")
           marker = cur.start
           _.each(origOps, (op, i) ->
             if Delta.isInsert(op)
               if op.value.indexOf('\n') != -1
-                console.info "SPLITTING RETAIN"
-                console.assert(marker == cur.start, "Marker is: #{marker} but cur.start is: #{cur.start}")
                 cur = new RetainOp(cur.start, marker + op.value.indexOf('\n'), _.clone(cur.attributes))
                 tail = new RetainOp(marker + op.value.indexOf('\n'), tail.end, _.clone(tail.attributes))
               else
@@ -114,7 +112,7 @@ class DeltaGenerator
               console.assert "Got retainOp in reference delta!"
           )
         ops.push(head) if head.getLength() > 0
-        ops.push(cur)
+        ops.push(cur) unless cur.getLength() == 0
         ops.push(tail) if tail.getLength() > 0
         for attr in attrs
           switch attr
@@ -130,11 +128,12 @@ class DeltaGenerator
                   delete cur.attributes[attr]
                 else
                   referenceElem = reference.getOpsAt(cur.start, cur.end - cur.start)
-                  if referenceElem[0].attributes[attr]?
-                    console.assert referenceElem[0].attributes[attr], "Boolean attribute on reference delta should only be true!"
-                    cur.attributes[attr] = null
-                  else
-                    cur.attributes[attr] = true
+                  if referenceElem.length > 0
+                    if referenceElem[0].attributes[attr]?
+                      console.assert referenceElem[0].attributes[attr], "Boolean attribute on reference delta should only be true!"
+                      cur.attributes[attr] = null
+                    else
+                      cur.attributes[attr] = true
             when 'size'
               getRandFontSize = => _.first(_.shuffle(@constants.attributes['size']))
               if Delta.isInsert(cur)
@@ -172,7 +171,8 @@ class DeltaGenerator
                     this.getRandomString(@constants.alphabet, opLength))
     else if rand < 0.75
       return newDelta if startDelta.endLength - startDelta.startLength <= 1
-      opIndex = _.random(0, finalIndex - 1) # Scribe doesn't like us deleting the final \n
+      # Scribe doesn't like us deleting the final \n
+      opIndex = _.random(0, finalIndex - 1)
       opLength = _.random(1, finalIndex - opIndex)
       this.deleteAt(newDelta, opIndex, opLength)
     else
