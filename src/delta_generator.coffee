@@ -127,10 +127,21 @@ class DeltaGenerator
                 if cur.attributes[attr]?
                   delete cur.attributes[attr]
                 else
-                  referenceElem = reference.getOpsAt(cur.start, cur.end - cur.start)
-                  if referenceElem.length > 0
-                    if referenceElem[0].attributes[attr]?
-                      console.assert referenceElem[0].attributes[attr], "Boolean attribute on reference delta should only be true!"
+                  referenceElems = reference.getOpsAt(cur.start, cur.end - cur.start)
+                  console.assert _.every(referenceElems, (elem) -> Delta.isInsert(elem)), "Elem NOT INSERT"
+                  if referenceElems.length > 0
+                    (->
+                      length = 0
+                      val = referenceElems[0].attributes[attr]
+                      for elem in referenceElems
+                        if elem.attributes[attr] != val
+                          cur.end = cur.start + length
+                          tail.start = cur.end
+                        else
+                          length += elem.getLength()
+                    )()
+                    if referenceElems[0].attributes[attr]?
+                      console.assert referenceElems[0].attributes[attr], "Boolean attribute on reference delta should only be true!"
                       cur.attributes[attr] = null
                     else
                       cur.attributes[attr] = true
