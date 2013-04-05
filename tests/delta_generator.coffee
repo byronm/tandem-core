@@ -254,58 +254,97 @@ describe('DeltaGen', ->
                                   new RetainOp(0, 3)])
       assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
+
+    it('should remove bold and add italic to the last char in insert', ->
+      reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
+      delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}),
+                               new RetainOp(0, 3)])
+      DeltaGen.formatAt(delta, 2, 1, ["bold", "italic"], reference)
+      expected = new Delta(3, 6, [new InsertOp("ab", {bold: true}),
+                                  new InsertOp("c", {italic: true}),
+                                  new RetainOp(0, 3)])
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+    )
+
+    it('should add italic to the entire insert', ->
+      reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
+      delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}),
+                               new RetainOp(0, 3)])
+      DeltaGen.formatAt(delta, 0, 3, ["italic"], reference)
+      expected = new Delta(3, 6, [new InsertOp("abc", {bold: true,
+                                                       italic: true}),
+                                  new RetainOp(0, 3)])
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+    )
+
+    it('should add italic and keep bold on final char in insert', ->
+      reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
+      delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}),
+                               new RetainOp(0, 3)])
+      DeltaGen.formatAt(delta, 2, 1, ["italic"], reference)
+      expected = new Delta(3, 6, [new InsertOp("ab", {bold: true}),
+                                  new InsertOp("c", {bold: true, italic: true}),
+                                  new RetainOp(0, 3)])
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+    )
+
+    it('should null the bold on the middle char', ->
+      reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
+      delta = new Delta(3, 3, [new RetainOp(0, 3)])
+      DeltaGen.formatAt(delta, 1, 1, ["bold"], reference)
+      expected = new Delta(3, 3, [new RetainOp(0, 1),
+                                  new RetainOp(1, 2, {bold: null}),
+                                  new RetainOp(2, 3)])
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+    )
+
+    it('should null the bold and add italic to the middle char', ->
+      reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
+      delta = new Delta(3, 3, [new RetainOp(0, 3)])
+      DeltaGen.formatAt(delta, 1, 1, ["bold", "italic"], reference)
+      expected = new Delta(3, 3, [new RetainOp(0, 1),
+                                  new RetainOp(1, 2, {bold: null,
+                                                      italic: true}),
+                                  new RetainOp(2, 3)])
+      assert(delta.isEqual(expected, "Expected #{expected} but got #{delta}"))
+    )
+
+    it('should null the bold on the entire retain', ->
+      reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
+      delta = new Delta(3, 3, [new RetainOp(0, 3)])
+      DeltaGen.formatAt(delta, 0, 3, ["bold"], reference)
+      expected = new Delta(3, 3, [new RetainOp(0, 3, {bold: null})])
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+    )
+
+    it('should null the bold referenced by the retain', ->
+      reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
+      delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}),
+                               new RetainOp(0, 3)])
+      DeltaGen.formatAt(delta, 3, 3, ["bold"], reference)
+      expected = new Delta(3, 6, [new InsertOp("abc", {bold: true}),
+                                  new RetainOp(0, 3, {bold: null})])
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+    )
+
+    it('should null the bold referenced by the retain and add italic', ->
+      reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
+      delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}),
+                               new RetainOp(0, 3)])
+      DeltaGen.formatAt(delta, 3, 3, ["bold", "italic"], reference)
+      expected = new Delta(3, 6, [new InsertOp("abc", {bold: true}),
+                                  new RetainOp(0, 3, {bold: null,
+                                                      italic: true})])
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+    )
+
+    it('should remove bold from the entire insert', ->
+      reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
+      delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}),
+                               new RetainOp(0, 3)])
+      DeltaGen.formatAt(delta, 0, 3, ["bold"], reference)
+      expected = new Delta(3, 6, [new InsertOp("abc"), new RetainOp(0, 3)])
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+    )
   )
-
-reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
-delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 2, 1, ["bold", "italic"], reference)
-expected = new Delta(3, 6, [new InsertOp("ab", {bold: true}), new InsertOp("c", {italic: true}), new RetainOp(0, 3)])
-assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
-
-reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
-delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 0, 3, ["italic"], reference)
-expected = new Delta(3, 6, [new InsertOp("abc", {bold: true, italic: true}), new RetainOp(0, 3)])
-assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
-
-reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
-delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 2, 1, ["italic"], reference)
-expected = new Delta(3, 6, [new InsertOp("ab", {bold: true}), new InsertOp("c", {bold: true, italic: true}), new RetainOp(0, 3)])
-assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
-
-reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
-delta = new Delta(3, 3, [new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 1, 1, ["bold"], reference)
-expected = new Delta(3, 3, [new RetainOp(0, 1), new RetainOp(1, 2, {bold: null}), new RetainOp(2, 3)])
-assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
-
-reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
-delta = new Delta(3, 3, [new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 1, 1, ["bold", "italic"], reference)
-expected = new Delta(3, 3, [new RetainOp(0, 1), new RetainOp(1, 2, {bold: null, italic: true}), new RetainOp(2, 3)])
-assert(delta.isEqual(expected, "Expected #{expected} but got #{delta}"))
-
-reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
-delta = new Delta(3, 3, [new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 0, 3, ["bold"], reference)
-expected = new Delta(3, 3, [new RetainOp(0, 3, {bold: null})])
-assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
-
-reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
-delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 3, 3, ["bold"], reference)
-expected = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3, {bold: null})])
-assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
-
-reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
-delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 3, 3, ["bold", "italic"], reference)
-expected = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3, {bold: null, italic: true})])
-assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
-
-reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
-delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
-DeltaGen.formatAt(delta, 0, 3, ["bold"], reference)
-expected = new Delta(3, 6, [new InsertOp("abc"), new RetainOp(0, 3)])
-assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+)
