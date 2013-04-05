@@ -130,7 +130,7 @@ class DeltaGenerator
                   referenceOps = reference.getOpsAt(cur.start, cur.end - cur.start)
                   console.assert _.every(referenceOps, (op) -> Delta.isInsert(op)), "Elem NOT INSERT"
                   if referenceOps.length > 0
-                    (->
+                    do ->
                       length = 0
                       val = referenceOps[0].attributes[attr]
                       for op in referenceOps
@@ -139,7 +139,6 @@ class DeltaGenerator
                           tail.start = cur.end
                         else
                           length += op.getLength()
-                    )()
                     if referenceOps[0].attributes[attr]?
                       console.assert referenceOps[0].attributes[attr], "Boolean attribute on reference delta should only be true!"
                       cur.attributes[attr] = null
