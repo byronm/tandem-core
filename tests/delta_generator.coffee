@@ -6,74 +6,69 @@ InsertOp   = Tandem.InsertOp
 RetainOp   = Tandem.RetainOp
 DeltaGen   = Tandem.DeltaGen
 
-testDeleteAt = (delta, deletionPoint, numToDelete, expected) ->
-  DeltaGen.deleteAt(delta, deletionPoint, numToDelete, length)
-  assert(delta.isEqual(expected))
-
 describe('DeltaGen', ->
   describe('deleteAt', ->
     it('should delete 1 from the middle of the retain', ->
       delta = new Delta(0, 6, [new RetainOp(0, 6)])
       DeltaGen.deleteAt(delta, 3, 1)
-      expected = delta.isEqual(new Delta(0, 5, [new RetainOp(0, 3),
-                                                new RetainOp(4, 6)]))
-      assert(delta.isEqual(expected))
+      expected = new Delta(0, 5, [new RetainOp(0, 3), new RetainOp(4, 6)])
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete 2 from the middle of the retain', ->
       delta = new Delta(0, 6, [new RetainOp(0, 6)])
       DeltaGen.deleteAt(delta, 3, 2)
       expected = new Delta(0, 4, [new RetainOp(0, 3), new RetainOp(5, 6)])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete the end of the of the retain', ->
       delta = new Delta(0, 6, [new RetainOp(0, 6)])
       DeltaGen.deleteAt(delta, 5, 1)
       expected = new Delta(0, 5, [new RetainOp(0, 5)])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should handle deleting beyond the end of the retain', ->
       delta = new Delta(0, 6, [new RetainOp(0, 6)])
       DeltaGen.deleteAt(delta, 5, 2)
       expected = new Delta(0, 5, [new RetainOp(0, 5)])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete 1 from the start of the retain', ->
       delta = new Delta(0, 6, [new RetainOp(0, 6)])
       DeltaGen.deleteAt(delta, 0, 1)
       expected = new Delta(0, 5, [new RetainOp(1, 6)])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete the entire retain', ->
       delta = new Delta(0, 6, [new RetainOp(0, 6)])
       DeltaGen.deleteAt(delta, 0, 6)
       expected = new Delta(0, 0, [])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete 1 from start of the insert', ->
       delta = new Delta(0, 6, [new InsertOp("012345")])
       DeltaGen.deleteAt(delta, 0, 1)
       expected = new Delta(0, 5, [new InsertOp("12345")])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete many from the start of the insert', ->
       delta = new Delta(0, 6, [new InsertOp("012345")])
       DeltaGen.deleteAt(delta, 0, 4)
       expected = new Delta(0, 2, [new InsertOp("45")])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete 1 from the middle of the insert', ->
       delta = new Delta(0, 6, [new InsertOp("012345")])
       DeltaGen.deleteAt(delta, 3, 1)
       expected = new Delta(0, 5, [new InsertOp("01245")])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete many from the end of the insert', ->
@@ -86,42 +81,42 @@ describe('DeltaGen', ->
       delta = new Delta(0, 6, [new InsertOp("012345")])
       DeltaGen.deleteAt(delta, 5, 1)
       expected = new Delta(0, 5, [new InsertOp("01234")])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete many spanning a retain, insert', ->
       delta = new Delta(0, 6, [new RetainOp(0, 3), new InsertOp("abc")])
       DeltaGen.deleteAt(delta, 2, 3)
       expected = new Delta(0, 3, [new RetainOp(0, 2), new InsertOp("c")])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete many spanning adjacent retains', ->
       delta = new Delta(0, 6, [new RetainOp(0, 3), new RetainOp(6, 9)])
       DeltaGen.deleteAt(delta, 2, 3)
       expected = new Delta(0, 3, [new RetainOp(0, 2), new RetainOp(8, 9)])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete an entire retain preceding an adjacent retain', ->
       delta = new Delta(0, 6, [new RetainOp(0, 3), new RetainOp(6, 9)])
       DeltaGen.deleteAt(delta, 0, 3)
       expected = new Delta(0, 3, [new RetainOp(6, 9)])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete many spanning adjacent inserts', ->
       delta = new Delta(0, 6, [new InsertOp("abc"), new InsertOp("efg")])
       DeltaGen.deleteAt(delta, 2, 3)
       expected = new Delta(0, 3, [new InsertOp("ab"), new InsertOp("g")])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should delete many spanning an insert, retain', ->
       delta = new Delta(0, 6, [new InsertOp("abc"), new RetainOp(3, 6)])
       DeltaGen.deleteAt(delta, 2, 3)
       expected = new Delta(0, 3, [new InsertOp("ab"), new RetainOp(5, 6)])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should many spanning 3 retains', ->
@@ -130,7 +125,7 @@ describe('DeltaGen', ->
                                  new RetainOp(32, 37)])
       DeltaGen.deleteAt(delta, 12, 14)
       expected = new Delta(37, 14, [new RetainOp(0, 12), new RetainOp(35, 37)])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
   )
 
@@ -139,21 +134,21 @@ describe('DeltaGen', ->
       delta = new Delta(0, 6, [new InsertOp("012345")])
       DeltaGen.insertAt(delta, 3, "abcdefg")
       expected = new Delta(0, 13, [new InsertOp("012abcdefg345")])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should write many to start of insert', ->
       delta = new Delta(0, 6, [new InsertOp("012345")])
       DeltaGen.insertAt(delta, 0, "abcdefg")
       expected = new Delta(0, 13, [new InsertOp("abcdefg012345")])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
     it('should write many to end of insert', ->
       delta = new Delta(0, 6, [new InsertOp("012345")])
       DeltaGen.insertAt(delta, 6, "abcdefg")
       expected = new Delta(0, 13, [new InsertOp("012345abcdefg")])
-      assert(delta.isEqual(expected))
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
   )
 
@@ -271,8 +266,7 @@ describe('DeltaGen', ->
       delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}),
                                new RetainOp(0, 3)])
       DeltaGen.formatAt(delta, 0, 3, ["italic"], reference)
-      expected = new Delta(3, 6, [new InsertOp("abc", {bold: true,
-                                                       italic: true}),
+      expected = new Delta(3, 6, [new InsertOp("abc", {bold: true, italic: true}),
                                   new RetainOp(0, 3)])
       assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
@@ -303,8 +297,7 @@ describe('DeltaGen', ->
       delta = new Delta(3, 3, [new RetainOp(0, 3)])
       DeltaGen.formatAt(delta, 1, 1, ["bold", "italic"], reference)
       expected = new Delta(3, 3, [new RetainOp(0, 1),
-                                  new RetainOp(1, 2, {bold: null,
-                                                      italic: true}),
+                                  new RetainOp(1, 2, {bold: null, italic: true}),
                                   new RetainOp(2, 3)])
       assert(delta.isEqual(expected, "Expected #{expected} but got #{delta}"))
     )
@@ -333,8 +326,7 @@ describe('DeltaGen', ->
                                new RetainOp(0, 3)])
       DeltaGen.formatAt(delta, 3, 3, ["bold", "italic"], reference)
       expected = new Delta(3, 6, [new InsertOp("abc", {bold: true}),
-                                  new RetainOp(0, 3, {bold: null,
-                                                      italic: true})])
+                                  new RetainOp(0, 3, {bold: null, italic: true})])
       assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
