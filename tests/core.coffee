@@ -1276,6 +1276,15 @@ expected = new Delta(6, 6, [new RetainOp(0, 3, {italic: null}),
                             new RetainOp(3, 6)])
 assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
 
+reference = new Delta(0, 6, [new InsertOp("abc", {italic: true}),
+                             new InsertOp("def", {})])
+delta = new Delta(6, 6, [new RetainOp(0, 6)])
+DeltaGen.formatAt(delta, 1, 3, ["italic"], reference)
+expected = new Delta(6, 6, [new RetainOp(0, 1),
+                            new RetainOp(1, 3, {italic: null}),
+                            new RetainOp(3, 6)])
+assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+
 reference = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
 delta = new Delta(3, 6, [new InsertOp("abc", {bold: true}), new RetainOp(0, 3)])
 DeltaGen.formatAt(delta, 0, 1, ["bold"], reference)
