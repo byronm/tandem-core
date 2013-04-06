@@ -19,56 +19,69 @@ describe('decompose', ->
   it('should append', ->
     deltaA = new Delta(0, 3, [new InsertOp("abc")])
     deltaC = new Delta(0, 6, [new InsertOp("abcdef")])
-    expectedDecomposed = new Delta(3, 6, [new RetainOp(0, 3), new InsertOp("def")])
+    expectedDecomposed = new Delta(3, 6, [new RetainOp(0, 3),
+                                          new InsertOp("def")])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
   it('should prepend', ->
     deltaA = new Delta(0, 3, [new InsertOp("abc")])
     deltaC = new Delta(0, 6, [new InsertOp("defabc")])
-    expectedDecomposed = new Delta(3, 6, [new InsertOp("def"), new RetainOp(0, 3)])
+    expectedDecomposed = new Delta(3, 6, [new InsertOp("def"),
+                                          new RetainOp(0, 3)])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
   it('should insert to the middle', ->
     deltaA = new Delta(0, 3, [new InsertOp("abc")])
     deltaC = new Delta(0, 6, [new InsertOp("abdefc")])
-    expectedDecomposed = new Delta(3, 6, [new RetainOp(0, 2), new InsertOp("def"), new RetainOp(2, 3)])
+    expectedDecomposed = new Delta(3, 6, [new RetainOp(0, 2),
+                                          new InsertOp("def"),
+                                          new RetainOp(2, 3)])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
   it('should yield alternating inserts', ->
     deltaA = new Delta(0, 3, [new InsertOp("abc")])
     deltaC = new Delta(0, 6, [new InsertOp("azbzcz")])
-    expectedDecomposed = new Delta(3, 6, [new RetainOp(0, 1), new InsertOp("z"), new RetainOp(1, 2), new InsertOp("z"), new RetainOp(2, 3), new InsertOp("z")])
+    expectedDecomposed = new Delta(3, 6, [new RetainOp(0, 1),
+                                          new InsertOp("z"),
+                                          new RetainOp(1, 2),
+                                          new InsertOp("z"),
+                                          new RetainOp(2, 3),
+                                          new InsertOp("z")])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
   it('should replace the tail', ->
     deltaA = new Delta(0, 6, [new InsertOp("abcdef")])
     deltaC = new Delta(0, 6, [new InsertOp("abc123")])
-    expectedDecomposed = new Delta(6, 6, [new RetainOp(0, 3), new InsertOp("123")])
+    expectedDecomposed = new Delta(6, 6, [new RetainOp(0, 3),
+                                          new InsertOp("123")])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
   it('should delete the tail and prepend to the head', ->
     deltaA = new Delta(0, 6, [new InsertOp("abcdef")])
     deltaC = new Delta(0, 6, [new InsertOp("123abc")])
-    expectedDecomposed = new Delta(6, 6, [new InsertOp("123"), new RetainOp(0, 3)])
+    expectedDecomposed = new Delta(6, 6, [new InsertOp("123"),
+                                          new RetainOp(0, 3)])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
   it('should delete the head and append to the tail', ->
     deltaA = new Delta(0, 6, [new InsertOp("abcdef")])
     deltaC = new Delta(0, 6, [new InsertOp("def123")])
-    expectedDecomposed = new Delta(6, 6, [new RetainOp(3, 6), new InsertOp("123")])
+    expectedDecomposed = new Delta(6, 6, [new RetainOp(3, 6),
+                                          new InsertOp("123")])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
   it('should replace the head', ->
     deltaA = new Delta(0, 6, [new InsertOp("abcdef")])
     deltaC = new Delta(0, 6, [new InsertOp("123def")])
-    expectedDecomposed = new Delta(6, 6, [new InsertOp("123"), new RetainOp(3, 6)])
+    expectedDecomposed = new Delta(6, 6, [new InsertOp("123"),
+                                          new RetainOp(3, 6)])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
@@ -82,7 +95,8 @@ describe('decompose', ->
   it('should delete from the middle', ->
     deltaA = new Delta(0, 6, [new InsertOp("abcdef")])
     deltaC = new Delta(0, 4, [new InsertOp("adef")])
-    expectedDecomposed = new Delta(6, 4, [new RetainOp(0, 1), new RetainOp(3, 6)])
+    expectedDecomposed = new Delta(6, 4, [new RetainOp(0, 1),
+                                          new RetainOp(3, 6)])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
@@ -148,7 +162,8 @@ describe('decompose', ->
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
-  it('should retain text with no attributes when no attribution changes have been made', ->
+  it('should retain text with no attributes when no attribution changes have
+   been made', ->
     deltaA = new Delta(0, 2, [new InsertOp("ab")])
     deltaC = new Delta(0, 6, [new InsertOp("ab"),
                               new InsertOp("cd", {bold: true}),
@@ -159,7 +174,8 @@ describe('decompose', ->
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
-  it('should retain text with attributes when attribution changes have been made', ->
+  it('should retain text with attributes when attribution changes have been
+   made', ->
     deltaA = new Delta(0, 6, [new InsertOp("abcdef")])
     deltaC = new Delta(0, 6, [new InsertOp("a", {bold: true}),
                               new InsertOp("b", {bold: true, italic: true}),
@@ -176,21 +192,26 @@ describe('decompose', ->
   it('should retain the middle', ->
     deltaA = new Delta(0, 6, [new InsertOp("abczde")])
     deltaC = new Delta(0, 6, [new InsertOp("zabcde")])
-    expectedDecomposed = new Delta(6, 6, [new InsertOp("z"), new RetainOp(0, 3), new RetainOp(4, 6)])
+    expectedDecomposed = new Delta(6, 6, [new InsertOp("z"),
+                                          new RetainOp(0, 3),
+                                          new RetainOp(4, 6)])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
   it('should retain the middle', ->
     deltaA = new Delta(0, 5, [new InsertOp("abcde")])
     deltaC = new Delta(0, 5, [new InsertOp("zbcd1")])
-    expectedDecomposed = new Delta(5, 5, [new InsertOp("z"), new RetainOp(1, 4), new InsertOp("1")])
+    expectedDecomposed = new Delta(5, 5, [new InsertOp("z"),
+                                          new RetainOp(1, 4),
+                                          new InsertOp("1")])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
   it('should retain the tail', ->
     deltaA = new Delta(0, 8, [new InsertOp("xbyabcde")])
     deltaC = new Delta(0, 6, [new InsertOp("zabcde")])
-    expectedDecomposed = new Delta(8, 6, [new InsertOp("z"), new RetainOp(3, 8)])
+    expectedDecomposed = new Delta(8, 6, [new InsertOp("z"),
+                                          new RetainOp(3, 8)])
     testDecompose(deltaA, deltaC, expectedDecomposed)
   )
 
@@ -214,7 +235,8 @@ describe('decompose', ->
 ##############################
 testComposeAndDecompose = (deltaA, deltaB, expectedComposed, expectedDecomposed) ->
   composed = deltaA.compose(deltaB)
-  composeError =  "Incorrect composition. Got: #{composed.toString()}, expected: #{expectedComposed.toString()}"
+  composeError =  "Incorrect composition. Got: #{composed.toString()},
+    expected: #{expectedComposed.toString()}"
   assert(composed.isEqual(expectedComposed), composeError)
   return unless _.all(deltaA.ops, ((op) -> return op.value?))
   return unless _.all(composed.ops, ((op) -> return op.value?))
@@ -243,7 +265,9 @@ describe('compose', ->
 
   it('should insert to the middle', ->
     deltaA = new Delta(0, 3, [new InsertOp("abc")])
-    deltaB = new Delta(3, 6, [new RetainOp(0, 1), new InsertOp("123"), new RetainOp(1, 3)])
+    deltaB = new Delta(3, 6, [new RetainOp(0, 1),
+                              new InsertOp("123"),
+                              new RetainOp(1, 3)])
     expectedComposed = new Delta(0, 6, [new InsertOp("a123bc")])
     expectedDecomposed = deltaB
     testComposeAndDecompose(deltaA, deltaB, expectedComposed, expectedDecomposed)
@@ -251,14 +275,20 @@ describe('compose', ->
 
   it('should insert newlines', ->
     deltaA = new Delta(0, 7, [new InsertOp("abc\ndef")])
-    deltaB = new Delta(7, 8, [new RetainOp(0, 1), new InsertOp("\n"), new RetainOp(1, 7)])
+    deltaB = new Delta(7, 8, [new RetainOp(0, 1),
+                              new InsertOp("\n"),
+                              new RetainOp(1, 7)])
     expectedComposed = new Delta(0, 8, [new InsertOp("a\nbc\ndef")])
-    expectedDecomposed = new Delta(7, 8, [new RetainOp(0, 1), new InsertOp("\n"), new RetainOp(1, 7)])
+    expectedDecomposed = new Delta(7, 8, [new RetainOp(0, 1),
+                                          new InsertOp("\n"),
+                                          new RetainOp(1, 7)])
     testComposeAndDecompose(deltaA, deltaB, expectedComposed, expectedDecomposed)
   )
 
   it('should handle newlines following an attribution and ending the doc', ->
-    deltaA = new Delta(0, 4, [new InsertOp("ab"), new InsertOp("c", {bold: true}), new InsertOp("\n")])
+    deltaA = new Delta(0, 4, [new InsertOp("ab"),
+                              new InsertOp("c", {bold: true}),
+                              new InsertOp("\n")])
     deltaC = new Delta(0, 3, [new InsertOp("ab\n")])
     decomposed = deltaC.decompose(deltaA)
     composed = deltaA.compose(decomposed)
@@ -266,7 +296,9 @@ describe('compose', ->
   )
 
   it('should handle newlines following an attribution and not ending the doc', ->
-    deltaA = new Delta(0, 7, [new InsertOp("ab"), new InsertOp("c", {bold: true}), new InsertOp("\ndef")])
+    deltaA = new Delta(0, 7, [new InsertOp("ab"),
+                              new InsertOp("c", {bold: true}),
+                              new InsertOp("\ndef")])
     deltaC = new Delta(0, 6, [new InsertOp("ab\ndef")])
     decomposed = deltaC.decompose(deltaA)
     composed = deltaA.compose(decomposed)
@@ -275,11 +307,13 @@ describe('compose', ->
 
   it('should insert a character that appears later in the original document', ->
     deltaA = new Delta(0, 5, [new InsertOp("abczd")])
-    deltaB = new Delta(5, 6, [new RetainOp(0, 1), new InsertOp("z"), new
-    RetainOp(1, 5)])
+    deltaB = new Delta(5, 6, [new RetainOp(0, 1),
+                              new InsertOp("z"),
+                              new RetainOp(1, 5)])
     expectedComposed = new Delta(0, 6, [new InsertOp("azbczd")])
-    expectedDecomposed = new Delta(5, 6, [new RetainOp(0, 1), new InsertOp("z"), new
-    RetainOp(1, 5)])
+    expectedDecomposed = new Delta(5, 6, [new RetainOp(0, 1),
+                                          new InsertOp("z"),
+                                          new RetainOp(1, 5)])
     testComposeAndDecompose(deltaA, deltaB, expectedComposed, expectedDecomposed)
   )
 
@@ -367,7 +401,9 @@ describe('compose', ->
   it('should append when there is a retain', ->
     deltaA = new Delta(3, 5, [new InsertOp("dd"), new RetainOp(0, 3)])
     deltaB = new Delta(5, 7, [new RetainOp(0, 5), new InsertOp("ee")])
-    expectedComposed = new Delta(3, 7, [new InsertOp("dd"), new RetainOp(0, 3), new InsertOp("ee")])
+    expectedComposed = new Delta(3, 7, [new InsertOp("dd"),
+                                        new RetainOp(0, 3),
+                                        new InsertOp("ee")])
     expectedDecomposed = deltaB
     testComposeAndDecompose(deltaA, deltaB, expectedComposed, expectedDecomposed)
   )
@@ -397,10 +433,16 @@ describe('compose', ->
   )
 
   it('should handle when deltaA has non-contiguous retains', ->
-    deltaA = new Delta(6, 12, [new RetainOp(0, 3), new InsertOp("abc"), new RetainOp(3, 6), new InsertOp("def")])
-    deltaB = new Delta(12, 18, [new InsertOp("123"), new RetainOp(0, 3), new InsertOp("456"), new RetainOp(3, 12)])
-    expectedComposed = new Delta(6, 18, [new InsertOp("123"), new RetainOp(0,
-      3), new InsertOp("456abc"), new RetainOp(3, 6), new InsertOp("def")])
+    deltaA = new Delta(6, 12, [new RetainOp(0, 3),
+                               new InsertOp("abc"), new RetainOp(3, 6),
+                               new InsertOp("def")])
+    deltaB = new Delta(12, 18, [new InsertOp("123"),
+      new RetainOp(0, 3), new InsertOp("456"), new RetainOp(3, 12)])
+    expectedComposed = new Delta(6, 18, [new InsertOp("123"),
+                                         new RetainOp(0, 3),
+                                         new InsertOp("456abc"),
+                                         new RetainOp(3, 6),
+                                         new InsertOp("def")])
     expectedDecomposed = deltaB
     testComposeAndDecompose(deltaA, deltaB, expectedComposed, expectedDecomposed)
   )
@@ -510,7 +552,8 @@ describe('compose', ->
     testComposeAndDecompose(deltaA, deltaB, expectedComposed, expectedDecomposed)
   )
 
-  it('should overwrite an attribute\'s value when inserted text is retained with a different value for the same attribute', ->
+  it('should overwrite an attribute\'s value when inserted text is retained
+   with a different value for the same attribute', ->
     deltaA = new Delta(3, 3, [new InsertOp("abc", {fontsize: 3})])
     deltaB = new Delta(3, 3, [new RetainOp(0, 3, {fontsize: 5})])
     expectedComposed = new Delta(3, 3, [new InsertOp("abc", {fontsize: 5})])
@@ -521,7 +564,8 @@ describe('compose', ->
   it('should support multiple attributes on the same set of characters', ->
     deltaA = new Delta(3, 3, [new RetainOp(0, 3, {bold: true})])
     deltaB = new Delta(3, 3, [new RetainOp(0, 3, {italic: true})])
-    expectedComposed = new Delta(3, 3, [new RetainOp(0, 3, {bold: true, italic: true})])
+    expectedComposed = new Delta(3, 3,
+      [new RetainOp(0, 3, {bold: true, italic: true})])
     expectedDecomposed = deltaB
     testComposeAndDecompose(deltaA, deltaB, expectedComposed, expectedDecomposed)
   )
@@ -529,13 +573,16 @@ describe('compose', ->
 
   it('should support multiple attributes on the same set of characters', ->
     deltaA = new Delta(3, 3, [new RetainOp(0, 3, {bold: true})])
-    deltaB = new Delta(3, 3, [new RetainOp(0, 3, {italic: true, underline: true})])
-    expectedComposed = new Delta(3, 3, [new RetainOp(0, 3, {bold: true, italic: true, underline: true})])
+    deltaB = new Delta(3, 3,
+      [new RetainOp(0, 3, {italic: true, underline: true})])
+    expectedComposed = new Delta(3, 3,
+      [new RetainOp(0, 3, {bold: true, italic: true, underline: true})])
     expectedDecomposed = deltaB
     testComposeAndDecompose(deltaA, deltaB, expectedComposed, expectedDecomposed)
   )
 
-  it('should support adding and removing attributes from the same inserted characters in the same delta', ->
+  it('should support adding and removing attributes from the same inserted
+   characters in the same delta', ->
     deltaA = new Delta(3, 3, [new RetainOp(0, 3, {bold: true})])
     deltaB = new Delta(3, 3, [new RetainOp(0, 3, {italic: true, underline: true, bold: null})])
     expectedComposed = new Delta(3, 3, [new RetainOp(0, 3, {italic: true, underline: true, bold: null})])
@@ -1045,14 +1092,20 @@ describe('applyDeltaToText', ->
 
   it('should replace text with new text', ->
     text = "cat"
-    delta = new Delta(3, 3, [new InsertOp("d"), new InsertOp("o"), new InsertOp("g")], 1)
+    delta = new Delta(3, 3, [new InsertOp("d"),
+                             new InsertOp("o"),
+                             new InsertOp("g")], 1)
     expected = "dog"
     testApplyDeltaToText(delta, text, expected)
   )
 
   it('should pass this fuzzer test we once failed', ->
-    deltaA = new Delta(3, 17, [new InsertOp("evumzsdinkbgcp"), new RetainOp(0, 3)])
-    deltaB = new Delta(3, 33, [new InsertOp("rjieumfrlrukvmmeylxxwtc"), new RetainOp(1, 2), new InsertOp("mklxowze"), new RetainOp(2, 3)])
+    deltaA = new Delta(3, 17, [new InsertOp("evumzsdinkbgcp"),
+                               new RetainOp(0, 3)])
+    deltaB = new Delta(3, 33, [new InsertOp("rjieumfrlrukvmmeylxxwtc"),
+                               new RetainOp(1, 2),
+                               new InsertOp("mklxowze"),
+                               new RetainOp(2, 3)])
     deltaBPrime = deltaB.follows(deltaA, true)
     deltaAPrime = deltaA.follows(deltaB, false)
     deltaAFinal = deltaA.compose(deltaBPrime)
