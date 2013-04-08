@@ -120,7 +120,7 @@ class DeltaGenerator
         [head, cur, tail] = splitOpInThree(elem, formatPoint - charIndex,
           curFormat, reference)
         ops.push(head) if head.getLength() > 0
-        ops.push(cur) unless cur.getLength() == 0
+        ops.push(cur) if cur.getLength() > 0
         ops.push(tail) if tail.getLength() > 0
         for attr in attrs
           switch attr
