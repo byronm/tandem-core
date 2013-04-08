@@ -76,7 +76,7 @@ class DeltaGenerator
     , 0)
 
   # Split the elem s.t. our formatting change applies to the proper "subelement"
-  splitInThree = (elem, splitAt, length, reference) ->
+  splitOpInThree = (elem, splitAt, length, reference) ->
     if Delta.isInsert(elem)
       headStr = elem.value.substring(0, splitAt)
       head = new InsertOp(headStr, _.clone(elem.attributes))
@@ -117,7 +117,8 @@ class DeltaGenerator
       if numToFormat > 0 && (charIndex == formatPoint || charIndex + elem.getLength() > formatPoint)
         curFormat = Math.min(numToFormat, elem.getLength() - (formatPoint - charIndex))
         numToFormat -= curFormat
-        [head, cur, tail] = splitInThree(elem, formatPoint - charIndex, curFormat, reference)
+        [head, cur, tail] = splitOpInThree(elem, formatPoint - charIndex,
+          curFormat, reference)
         ops.push(head) if head.getLength() > 0
         ops.push(cur) unless cur.getLength() == 0
         ops.push(tail) if tail.getLength() > 0
