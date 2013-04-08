@@ -51,8 +51,11 @@ class DeltaGenerator
     charIndex = 0
     ops = []
     for op in delta.ops
-      if numToDelete > 0 && (charIndex == deletionPoint or deletionPoint < charIndex + op.getLength())
-        curDelete = Math.min(numToDelete, op.getLength() - (deletionPoint - charIndex))
+      reachedDeletionPoint = charIndex == deletionPoint or
+        deletionPoint < charIndex + op.getLength()
+      if numToDelete > 0 && reachedDeletionPoint
+        curDelete = Math.min(numToDelete,
+          op.getLength() - (deletionPoint - charIndex))
         numToDelete -= curDelete
         if Delta.isInsert(op)
           newText = op.value.substring(0, deletionPoint - charIndex) +
@@ -91,17 +94,21 @@ class DeltaGenerator
         tail = new InsertOp(tailStr, _.clone(elem.attributes))
     else
       console.assert(Delta.isRetain(elem), "Expected retain but got #{elem}")
-      head = new RetainOp(elem.start, elem.start + splitAt, _.clone(elem.attributes))
+      head = new RetainOp(elem.start, elem.start + splitAt,
+        _.clone(elem.attributes))
       cur = new RetainOp(head.end, head.end + length, _.clone(elem.attributes))
       tail = new RetainOp(cur.end, elem.end, _.clone(elem.attributes))
       origOps = reference.getOpsAt(cur.start, cur.getLength())
-      console.assert(_.every(origOps, (op) -> Delta.isInsert(op)), "Non insert op in backref")
+      console.assert(_.every(origOps, (op) -> Delta.isInsert(op)),
+        "Non insert op in backref")
       marker = cur.start
       _.each(origOps, (op, i) ->
         if Delta.isInsert(op)
           if op.value.indexOf('\n') != -1
-            cur = new RetainOp(cur.start, marker + op.value.indexOf('\n'), _.clone(cur.attributes))
-            tail = new RetainOp(marker + op.value.indexOf('\n'), tail.end, _.clone(tail.attributes))
+            cur = new RetainOp(cur.start, marker + op.value.indexOf('\n'),
+              _.clone(cur.attributes))
+            tail = new RetainOp(marker + op.value.indexOf('\n'), tail.end,
+              _.clone(tail.attributes))
           else
             marker += op.getLength()
         else
@@ -159,8 +166,11 @@ class DeltaGenerator
     charIndex = 0
     ops = []
     for op in delta.ops
-      if numToFormat > 0 && (charIndex == formatPoint || charIndex + op.getLength() > formatPoint)
-        curFormat = Math.min(numToFormat, op.getLength() - (formatPoint - charIndex))
+      reachedFormatPoint = charIndex == formatPoint ||
+        charIndex + op.getLength() > formatPoint
+      if numToFormat > 0 && reachedFormatPoint
+        curFormat = Math.min(numToFormat,
+          op.getLength() - (formatPoint - charIndex))
         numToFormat -= curFormat
         # Need a reference to cur, the subpart of the op we want to format
         [head, cur, tail] = splitOpInThree(op, formatPoint - charIndex,
