@@ -110,14 +110,60 @@ class DeltaGenerator
       )
     return [head, cur, tail]
 
+  formatBooleanAttribute = (op, tail, attr, reference) ->
+    if Delta.isInsert(op)
+      if op.attributes[attr]?
+        delete op.attributes[attr]
+      else
+        op.attributes[attr] = true
+    else
+      console.assert Delta.isRetain(op), "Expected retain but got #{op}"
+      if op.attributes[attr]?
+        delete op.attributes[attr]
+      else
+        referenceOps = reference.getOpsAt(op.start, op.getLength())
+        console.assert _.every(referenceOps, (op) -> Delta.isInsert(op)),
+          "Formatting a retain that does not refer to an insert."
+        if referenceOps.length > 0
+          do ->
+            length = 0
+            val = referenceOps[0].attributes[attr]
+            for refOp in referenceOps
+              if refOp.attributes[attr] != val
+                op.end = op.start + length
+                tail.start = op.end
+              else
+                length += refOp.getLength()
+          if referenceOps[0].attributes[attr]?
+            console.assert referenceOps[0].attributes[attr],
+              "Boolean attribute on reference delta should only be true!"
+            op.attributes[attr] = null
+          else
+              op.attributes[attr] = true
+
+  formatNonBooleanAttribute = (op, attr) =>
+    getRandFontSize = => _.first(_.shuffle(@constants.attributes['size']))
+    if Delta.isInsert(op)
+      op.attributes[attr] = getRandFontSize()
+    else
+      console.assert(Delta.isRetain(op),
+        "Expected retain but got #{op}")
+      if op.attributes[attr]?
+        if Math.random() < 0.5
+          delete op.attributes[attr]
+        else
+          op.attributes[attr] = getRandFontSize()
+      else
+        op.attributes[attr] = getRandFontSize()
+
   @formatAt: (delta, formatPoint, numToFormat, attrs, reference) ->
     charIndex = 0
     ops = []
-    for elem in delta.ops
-      if numToFormat > 0 && (charIndex == formatPoint || charIndex + elem.getLength() > formatPoint)
-        curFormat = Math.min(numToFormat, elem.getLength() - (formatPoint - charIndex))
+    for op in delta.ops
+      if numToFormat > 0 && (charIndex == formatPoint || charIndex + op.getLength() > formatPoint)
+        curFormat = Math.min(numToFormat, op.getLength() - (formatPoint - charIndex))
         numToFormat -= curFormat
-        [head, cur, tail] = splitOpInThree(elem, formatPoint - charIndex,
+        [head, cur, tail] = splitOpInThree(op, formatPoint - charIndex,
           curFormat, reference)
         ops.push(head) if head.getLength() > 0
         ops.push(cur) if cur.getLength() > 0
@@ -125,53 +171,16 @@ class DeltaGenerator
         for attr in attrs
           switch attr
             when 'bold', 'italic', 'underline', 'strike', 'link'
-              if Delta.isInsert(cur)
-                if cur.attributes[attr]?
-                  delete cur.attributes[attr]
-                else
-                  cur.attributes[attr] = true
-              else
-                console.assert Delta.isRetain(cur), "Expected retain but got #{cur}"
-                if cur.attributes[attr]?
-                  delete cur.attributes[attr]
-                else
-                  referenceOps = reference.getOpsAt(cur.start, cur.end - cur.start)
-                  console.assert _.every(referenceOps, (op) -> Delta.isInsert(op)), "Elem NOT INSERT"
-                  if referenceOps.length > 0
-                    do ->
-                      length = 0
-                      val = referenceOps[0].attributes[attr]
-                      for op in referenceOps
-                        if op.attributes[attr] != val
-                          cur.end = cur.start + length
-                          tail.start = cur.end
-                        else
-                          length += op.getLength()
-                    if referenceOps[0].attributes[attr]?
-                      console.assert referenceOps[0].attributes[attr], "Boolean attribute on reference delta should only be true!"
-                      cur.attributes[attr] = null
-                    else
-                      cur.attributes[attr] = true
+              formatBooleanAttribute(cur, tail, attr, reference)
             when 'size'
-              getRandFontSize = => _.first(_.shuffle(@constants.attributes['size']))
-              if Delta.isInsert(cur)
-                cur.attributes[attr] = getRandFontSize()
-              else
-                console.assert(Delta.isRetain(cur),
-                  "Expected retain but got #{cur}")
-                if cur.attributes[attr]?
-                  if Math.random() < 0.5
-                    delete cur.attributes[attr]
-                  else
-                    cur.attributes[attr] = getRandFontSize()
-                else
-                  cur.attributes[attr] = getRandFontSize()
+              formatNonBooleanAttribute(cur, attr)
             else
               console.assert false, "Received unknown attribute: #{attr}"
         formatPoint += curFormat
       else
-        ops.push(elem)
-      charIndex += elem.getLength()
+        ops.push(op)
+      charIndex += op.getLength()
+
     delta.endLength = _.reduce(ops, (length, delta) ->
       return length + delta.getLength()
     , 0)
