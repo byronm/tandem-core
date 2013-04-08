@@ -145,7 +145,7 @@ class DeltaGenerator
               "Boolean attribute on reference delta should only be true!"
             op.attributes[attr] = null
           else
-              op.attributes[attr] = true
+            op.attributes[attr] = true
 
   formatNonBooleanAttribute = (op, attr) =>
     getNewAttrVal = (prevVal) =>
