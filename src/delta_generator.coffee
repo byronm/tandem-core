@@ -183,7 +183,7 @@ class DeltaGenerator
                     opIndex,
                     @getRandomString(@constants.alphabet, opLength))
     else if rand < 0.75
-      return newDelta if referenceDelta.endLength - referenceDelta.startLength <= 1
+      return newDelta if referenceDelta.endLength <= 1
       # Scribe doesn't like us deleting the final \n
       opIndex = _.random(0, finalIndex - 1)
       opLength = _.random(1, finalIndex - opIndex)
