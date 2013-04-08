@@ -55,12 +55,15 @@ class DeltaGenerator
         curDelete = Math.min(numToDelete, op.getLength() - (deletionPoint - charIndex))
         numToDelete -= curDelete
         if Delta.isInsert(op)
-          newText = op.value.substring(0, deletionPoint - charIndex) + op.value.substring(deletionPoint - charIndex + curDelete)
+          newText = op.value.substring(0, deletionPoint - charIndex) +
+            op.value.substring(deletionPoint - charIndex + curDelete)
           ops.push(new InsertOp(newText)) if newText.length > 0
         else
           console.assert(Delta.isRetain(op), "Expected retain but got: #{op}")
-          head = new RetainOp(op.start, op.start + deletionPoint - charIndex, _.clone(op.attributes))
-          tail = new RetainOp(op.start + deletionPoint - charIndex + curDelete, op.end, _.clone(op.attributes))
+          head = new RetainOp(op.start, op.start + deletionPoint - charIndex,
+            _.clone(op.attributes))
+          tail = new RetainOp(op.start + deletionPoint - charIndex + curDelete,
+            op.end, _.clone(op.attributes))
           ops.push(head) if head.start < head.end
           ops.push(tail) if tail.start < tail.end
         deletionPoint += curDelete
@@ -175,10 +178,10 @@ class DeltaGenerator
     opIndex = _.random(0, finalIndex)
     rand = Math.random()
     if rand < 0.5
-      opLength = this.getRandomLength()
+      opLength = @getRandomLength()
       this.insertAt(newDelta,
                     opIndex,
-                    this.getRandomString(@constants.alphabet, opLength))
+                    @getRandomString(@constants.alphabet, opLength))
     else if rand < 0.75
       return newDelta if referenceDelta.endLength - referenceDelta.startLength <= 1
       # Scribe doesn't like us deleting the final \n
@@ -196,8 +199,7 @@ class DeltaGenerator
   @getRandomDelta: (referenceDelta, numOps) ->
     newDelta = new Delta(referenceDelta.endLength,
                          referenceDelta.endLength,
-                         [new RetainOp(0,
-                                       referenceDelta.endLength)])
+                         [new RetainOp(0, referenceDelta.endLength)])
     numOps or= _.random(1, 10)
     for i in [0...numOps]
       @addRandomOp(newDelta, referenceDelta)
