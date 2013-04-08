@@ -75,6 +75,41 @@ class DeltaGenerator
       return length + op.getLength()
     , 0)
 
+  # Split the elem s.t. our formatting change applies to the proper "subelement"
+  splitInThree = (elem, splitAt, length, reference) ->
+    if Delta.isInsert(elem)
+      headStr = elem.value.substring(0, splitAt)
+      head = new InsertOp(headStr, _.clone(elem.attributes))
+      curStr = elem.value.substring(splitAt, splitAt + length)
+      cur = new InsertOp(curStr, _.clone(elem.attributes))
+      tailStr = elem.value.substring(splitAt + length)
+      tail = new InsertOp(tailStr, _.clone(elem.attributes))
+      # Sanitize for \n's, which we don't want to format
+      if curStr.indexOf('\n') != -1
+        newCur = curStr.substring(0, curStr.indexOf('\n'))
+        tailStr = curStr.substring(curStr.indexOf('\n')) + tailStr
+        cur = new InsertOp(curStr, _.clone(elem.attributes))
+        tail = new InsertOp(tailStr, _.clone(elem.attributes))
+    else
+      console.assert(Delta.isRetain(elem), "Expected retain but got #{elem}")
+      head = new RetainOp(elem.start, elem.start + splitAt, _.clone(elem.attributes))
+      cur = new RetainOp(head.end, head.end + length, _.clone(elem.attributes))
+      tail = new RetainOp(cur.end, elem.end, _.clone(elem.attributes))
+      origOps = reference.getOpsAt(cur.start, cur.getLength())
+      console.assert(_.every(origOps, (op) -> Delta.isInsert(op)), "Non insert op in backref")
+      marker = cur.start
+      _.each(origOps, (op, i) ->
+        if Delta.isInsert(op)
+          if op.value.indexOf('\n') != -1
+            cur = new RetainOp(cur.start, marker + op.value.indexOf('\n'), _.clone(cur.attributes))
+            tail = new RetainOp(marker + op.value.indexOf('\n'), tail.end, _.clone(tail.attributes))
+          else
+            marker += op.getLength()
+        else
+          console.assert "Got retainOp in reference delta!"
+      )
+    return [head, cur, tail]
+
   @formatAt: (delta, formatPoint, numToFormat, attrs, reference) ->
     charIndex = 0
     ops = []
@@ -82,38 +117,7 @@ class DeltaGenerator
       if numToFormat > 0 && (charIndex == formatPoint || charIndex + elem.getLength() > formatPoint)
         curFormat = Math.min(numToFormat, elem.getLength() - (formatPoint - charIndex))
         numToFormat -= curFormat
-        # Split the elem s.t. our formatting change applies to the proper "subelement"
-        if Delta.isInsert(elem)
-          headStr = elem.value.substring(0, formatPoint - charIndex)
-          head = new InsertOp(headStr, _.clone(elem.attributes))
-          curStr = elem.value.substring(formatPoint - charIndex, formatPoint - charIndex + curFormat)
-          cur = new InsertOp(curStr, _.clone(elem.attributes))
-          tailStr = elem.value.substring(formatPoint - charIndex + curFormat)
-          tail = new InsertOp(tailStr, _.clone(elem.attributes))
-          # Sanitize for \n's, which we don't want to format
-          if curStr.indexOf('\n') != -1
-            newCur = curStr.substring(0, curStr.indexOf('\n'))
-            tailStr = curStr.substring(curStr.indexOf('\n')) + tailStr
-            cur = new InsertOp(curStr, _.clone(elem.attributes))
-            tail = new InsertOp(tailStr, _.clone(elem.attributes))
-        else
-          console.assert(Delta.isRetain(elem), "Expected retain but got #{elem}")
-          head = new RetainOp(elem.start, elem.start + formatPoint - charIndex, _.clone(elem.attributes))
-          cur = new RetainOp(head.end, head.end + curFormat, _.clone(elem.attributes))
-          tail = new RetainOp(cur.end, elem.end, _.clone(elem.attributes))
-          origOps = reference.getOpsAt(cur.start, cur.getLength())
-          console.assert(_.every(origOps, (op) -> Delta.isInsert(op)), "Non insert op in backref")
-          marker = cur.start
-          _.each(origOps, (op, i) ->
-            if Delta.isInsert(op)
-              if op.value.indexOf('\n') != -1
-                cur = new RetainOp(cur.start, marker + op.value.indexOf('\n'), _.clone(cur.attributes))
-                tail = new RetainOp(marker + op.value.indexOf('\n'), tail.end, _.clone(tail.attributes))
-              else
-                marker += op.getLength()
-            else
-              console.assert "Got retainOp in reference delta!"
-          )
+        [head, cur, tail] = splitInThree(elem, formatPoint - charIndex, curFormat, reference)
         ops.push(head) if head.getLength() > 0
         ops.push(cur) unless cur.getLength() == 0
         ops.push(tail) if tail.getLength() > 0
