@@ -148,19 +148,21 @@ class DeltaGenerator
               op.attributes[attr] = true
 
   formatNonBooleanAttribute = (op, attr) =>
-    getRandFontSize = => _.first(_.shuffle(@constants.attributes['size']))
+    getNewAttrVal = (prevVal) =>
+      if prevVal?
+        _.first(_.without(@constants.attributes[attr], prevVal))
+      else
+        _.first(@constants.attributes[attr])
+
     if Delta.isInsert(op)
-      op.attributes[attr] = getRandFontSize()
+      op.attributes[attr] = getNewAttrVal(attr, op.attributes[attr])
     else
       console.assert(Delta.isRetain(op),
         "Expected retain but got #{op}")
-      if op.attributes[attr]?
-        if Math.random() < 0.5
+      if op.attributes[attr]? and Math.random() < 0.5
           delete op.attributes[attr]
-        else
-          op.attributes[attr] = getRandFontSize()
       else
-        op.attributes[attr] = getRandFontSize()
+        op.attributes[attr] = getNewAttrVal(op.attributes[attr])
 
   @formatAt: (delta, formatPoint, numToFormat, attrs, reference) ->
     charIndex = 0
