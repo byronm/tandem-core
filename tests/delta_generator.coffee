@@ -153,6 +153,20 @@ describe('DeltaGen', ->
   )
 
   describe('formatAt', ->
+    it('should remove italic on the first two inserts and ignore the remaining', ->
+      reference = new Delta(0, 12, [new InsertOp("abc", {italic: true}),
+                                    new InsertOp("def",
+                                      {italic: true, bold: true}),
+                                    new InsertOp("ghi"),
+                                    new InsertOp("jkl",
+                                      {"bold": true, "italic": true})])
+      delta = new Delta(12, 12, [new RetainOp(0, 12)])
+      DeltaGen.formatAt(delta, 0, 12, ['italic'], reference)
+      expected = new Delta(12, 12, [new RetainOp(0, 6, {italic: null}),
+                                    new RetainOp(6, 12)])
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+    )
+
     it('should remove italics on the first insert and ignore the second', ->
       reference = new Delta(0, 6, [new InsertOp("abc", {italic: true}),
                                    new InsertOp("def", {})])

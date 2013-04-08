@@ -138,6 +138,7 @@ class DeltaGenerator
               if refOp.attributes[attr] != val
                 op.end = op.start + length
                 tail.start = op.end
+                break
               else
                 length += refOp.getLength()
           if referenceOps[0].attributes[attr]?
@@ -177,9 +178,9 @@ class DeltaGenerator
         # Need a reference to cur, the subpart of the op we want to format
         [head, cur, tail] = splitOpInThree(op, formatPoint - charIndex,
           curFormat, reference)
-        ops.push(head) if head.getLength() > 0
-        ops.push(cur) if cur.getLength() > 0
-        ops.push(tail) if tail.getLength() > 0
+        ops.push(head)
+        ops.push(cur)
+        ops.push(tail)
         for attr in attrs
           switch attr
             when 'bold', 'italic', 'underline', 'strike', 'link'
