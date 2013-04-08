@@ -193,7 +193,7 @@ class DeltaGenerator
       this.formatAt(newDelta, opIndex, opLength, attrs, referenceDelta)
     return newDelta
 
-  @getRandomDelta: (referenceDelta, alphabet, numOps) ->
+  @getRandomDelta: (referenceDelta, numOps) ->
     newDelta = new Delta(referenceDelta.endLength,
                          referenceDelta.endLength,
                          [new RetainOp(0,

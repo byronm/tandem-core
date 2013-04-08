@@ -27,10 +27,9 @@ describe('Fuzzers', ->
     # x represents the consistent state of the document with deltas applied.
     x = "cat"
     xDelta = new Delta(0, 3, [new InsertOp("cat", {bold: true})])
-    alphabet = "abcdefghijklmnop".split('')
     pass = _.all([1..1000], (i) ->
-      deltaA = DeltaGen.getRandomDelta(xDelta, alphabet)
-      deltaB = DeltaGen.getRandomDelta(xDelta, alphabet)
+      deltaA = DeltaGen.getRandomDelta(xDelta)
+      deltaB = DeltaGen.getRandomDelta(xDelta)
       # 50/50 as to which client gets priority
       isRemote = if Math.random() > 0.5 then true else false
       deltaBPrime = deltaB.follows(deltaA, isRemote)
@@ -52,7 +51,6 @@ describe('Fuzzers', ->
   # Fuzz decompose
   ##############################
   it('should pass all decompose fuzzing', ->
-    alphabet = "abcdefghijklmnop".split('')
     pass = _.all([1..1000], (i) ->
       numInsertions = _.random(1, 40)
       insertions = DeltaGen.getRandomString(numInsertions)
@@ -71,7 +69,7 @@ describe('Fuzzers', ->
       deltaC = Delta.copy(deltaA)
       numChanges = Math.floor(Math.random() * 11)
       for j in [0...numChanges]
-        DeltaGen.addRandomOp(deltaC, deltaA, alphabet)
+        DeltaGen.addRandomOp(deltaC, deltaA)
       deltaC.compact()
       decomposed = deltaC.decompose(deltaA)
       composed = deltaA.compose(decomposed)
