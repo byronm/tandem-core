@@ -170,8 +170,8 @@ class DeltaGenerator
     delta.ops = ops
     delta.compact()
 
-  @addRandomOp: (newDelta, startDelta) ->
-    finalIndex = startDelta.endLength - 1
+  @addRandomOp: (newDelta, referenceDelta) ->
+    finalIndex = referenceDelta.endLength - 1
     opIndex = _.random(0, finalIndex)
     rand = Math.random()
     if rand < 0.5
@@ -180,7 +180,7 @@ class DeltaGenerator
                     opIndex,
                     this.getRandomString(@constants.alphabet, opLength))
     else if rand < 0.75
-      return newDelta if startDelta.endLength - startDelta.startLength <= 1
+      return newDelta if referenceDelta.endLength - referenceDelta.startLength <= 1
       # Scribe doesn't like us deleting the final \n
       opIndex = _.random(0, finalIndex - 1)
       opLength = _.random(1, finalIndex - opIndex)
@@ -190,17 +190,17 @@ class DeltaGenerator
       numAttrs = _.random(1, shuffled_attrs.length)
       attrs = shuffled_attrs.slice(0, numAttrs)
       opLength = _.random(1, finalIndex - opIndex)
-      this.formatAt(newDelta, opIndex, opLength, attrs, startDelta)
+      this.formatAt(newDelta, opIndex, opLength, attrs, referenceDelta)
     return newDelta
 
-  @getRandomDelta: (startDelta, alphabet, numOps) ->
-    newDelta = new Delta(startDelta.endLength,
-                         startDelta.endLength,
+  @getRandomDelta: (referenceDelta, alphabet, numOps) ->
+    newDelta = new Delta(referenceDelta.endLength,
+                         referenceDelta.endLength,
                          [new RetainOp(0,
-                                       startDelta.endLength)])
+                                       referenceDelta.endLength)])
     numOps or= _.random(1, 10)
     for i in [0...numOps]
-      @addRandomOp(newDelta, startDelta)
+      @addRandomOp(newDelta, referenceDelta)
     return newDelta
 
 module.exports = DeltaGenerator
