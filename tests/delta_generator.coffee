@@ -153,6 +153,16 @@ describe('DeltaGen', ->
   )
 
   describe('formatAt', ->
+    it('should not format \\n included in insert', ->
+      reference = new Delta(0, [new InsertOp("a")])
+      delta = new Delta(0, 5, [new RetainOp(0, 1), new InsertOp("bc\nd")])
+      DeltaGen.formatAt(delta, 1, 4, ['bold'], reference)
+      expected = new Delta(0, 5, [new RetainOp(0, 1),
+                                  new InsertOp("bc", {bold: true}),
+                                  new InsertOp("\nd")])
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+    )
+
     it('should format nothing since ref is to an insert starting with \\n', ->
       reference = new Delta(0, [new InsertOp("a\nbc\ndef", {bold: true})])
       delta = new Delta(8, 8, [new RetainOp(0, 8)])

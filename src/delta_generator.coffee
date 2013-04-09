@@ -90,7 +90,7 @@ class DeltaGenerator
       if curStr.indexOf('\n') != -1
         newCur = curStr.substring(0, curStr.indexOf('\n'))
         tailStr = curStr.substring(curStr.indexOf('\n')) + tailStr
-        cur = new InsertOp(curStr, _.clone(elem.attributes))
+        cur = new InsertOp(newCur, _.clone(elem.attributes))
         tail = new InsertOp(tailStr, _.clone(elem.attributes))
     else
       console.assert(Delta.isRetain(elem), "Expected retain but got #{elem}")
