@@ -153,6 +153,15 @@ describe('DeltaGen', ->
   )
 
   describe('formatAt', ->
+    it('should format nothing since ref is to an insert starting with \\n', ->
+      reference = new Delta(0, [new InsertOp("a\nbc\ndef", {bold: true})])
+      delta = new Delta(8, 8, [new RetainOp(0, 8)])
+      DeltaGen.formatAt(delta, 4, 2, ['italic'], reference)
+      expected = new Delta(8, 8, [new RetainOp(0, 8)])
+      console.info 'wtf'
+      assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
+    )
+
     it('should only format up to the first newline within range', ->
       reference = new Delta(0, [new InsertOp("abc\n", {bold: true}),
                                 new InsertOp("def\n"),
@@ -173,8 +182,9 @@ describe('DeltaGen', ->
                                     new InsertOp("jkl",
                                       {"bold": true, "italic": true})])
       delta = new Delta(12, 12, [new RetainOp(0, 12)])
-      DeltaGen.formatAt(delta, 0, 12, ['italic'], reference)
-      expected = new Delta(12, 12, [new RetainOp(0, 6, {italic: null}),
+      DeltaGen.formatAt(delta, 3, 12, ['italic'], reference)
+      expected = new Delta(12, 12, [new RetainOp(0, 3),
+                                    new RetainOp(3, 6, {italic: null}),
                                     new RetainOp(6, 12)])
       assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
