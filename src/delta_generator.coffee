@@ -160,9 +160,9 @@ class DeltaGenerator
   formatNonBooleanAttribute = (op, tail, attr, reference) =>
     getNewAttrVal = (prevVal) =>
       if prevVal?
-        _.first((_.without(@constants.attributes[attr], prevVal))
+        _.first(_.shuffle(_.without(@constants.attributes[attr], prevVal)))
       else
-        _.first((_.without(@constants.attributes[attr], @constants.default_attribute_value[attr]))
+        _.first(_.shuffle(_.without(@constants.attributes[attr], @constants.default_attribute_value[attr])))
 
     if Delta.isInsert(op)
       op.attributes[attr] = getNewAttrVal(attr, op.attributes[attr])
