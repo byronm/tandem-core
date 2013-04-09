@@ -102,18 +102,18 @@ class DeltaGenerator
       console.assert(_.every(origOps, (op) -> Delta.isInsert(op)),
         "Non insert op in backref")
       marker = cur.start
-      _.each(origOps, (op, i) ->
+      for op in origOps
         if Delta.isInsert(op)
           if op.value.indexOf('\n') != -1
             cur = new RetainOp(cur.start, marker + op.value.indexOf('\n'),
               _.clone(cur.attributes))
             tail = new RetainOp(marker + op.value.indexOf('\n'), tail.end,
               _.clone(tail.attributes))
+            break
           else
             marker += op.getLength()
         else
           console.assert "Got retainOp in reference delta!"
-      )
     return [head, cur, tail]
 
   formatBooleanAttribute = (op, tail, attr, reference) ->
