@@ -158,7 +158,6 @@ describe('DeltaGen', ->
       delta = new Delta(8, 8, [new RetainOp(0, 8)])
       DeltaGen.formatAt(delta, 4, 2, ['italic'], reference)
       expected = new Delta(8, 8, [new RetainOp(0, 8)])
-      console.info 'wtf'
       assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
