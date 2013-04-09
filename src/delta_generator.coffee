@@ -10,8 +10,8 @@ class DeltaGenerator
       'italic'    : [true, false],
       # 'link'      : [true, false],
       'strike'    : [true, false],
-      # 'family'    : ['monospace', 'serif'],
-      # 'color'     : ['black', 'blue', 'green', 'orange', 'red', 'white', 'yellow'],
+      'family'    : ['monospace', 'serif'],
+      'color'     : ['blue', 'green', 'orange', 'red', 'white', 'yellow'],
       'size'      : ['huge', 'large', 'small'],
       # 'background': ['black', 'blue', 'green', 'orange', 'purple', 'red', 'white', 'yellow']
     alphabet: "abcdefghijklmnopqrstuvwxyz\n"
@@ -185,7 +185,7 @@ class DeltaGenerator
           switch attr
             when 'bold', 'italic', 'underline', 'strike', 'link'
               formatBooleanAttribute(cur, tail, attr, reference)
-            when 'size'
+            when 'size', 'family', 'color'
               formatNonBooleanAttribute(cur, attr)
             else
               console.assert false, "Received unknown attribute: #{attr}"
