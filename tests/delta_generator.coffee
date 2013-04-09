@@ -153,28 +153,15 @@ describe('DeltaGen', ->
   )
 
   describe('formatAt', ->
-    it.only('should handle newlines better', ->
-      reference = new Delta(0, 82
-        [new InsertOp("j"),
-         new InsertOp("wz", {italic: true, size: "huge"}),
-         new InsertOp("m"),
-         new InsertOp("e", {italic: true, size: "huge"}),
-         new InsertOp("\nvccgtzxvczy"),
-         new InsertOp("or", {bold: true, size: "huge", strike: true}),
-         new InsertOp("gi", {italic: true}),
-         new InsertOp("f", {bold: true, size: "huge", strike: true}),
-         new InsertOp("kkaaf", {bold: true, size: "huge"}),
-         new InsertOp("uifcntlpgwxq\nnpjgqmzvkzndbabq\nawjnxdyuhoxzli\nqbc"),
-         new InsertOp("j", {size: "huge", strike: true}),
-         new InsertOp("fw", {bold: true, size: "huge"}),
-         new InsertOp("j", {size: "huge"}),
-         new InsertOp("ak\n")])
-      delta = new Delta(82, 82, [new RetainOp(0, 82)])
-      DeltaGen.formatAt(delta, 2, 47, ['size', 'bold'], reference)
-      expected = new Delta(82, 82,
-        [new RetainOp(0, 2),
-         new RetainOp(2, 5, {bold: true, size: "huge"}),
-         new RetainOp(5, 82)])
+    it('should only format up to the first newline within range', ->
+      reference = new Delta(0, [new InsertOp("abc\n", {bold: true}),
+                                new InsertOp("def\n"),
+                                new InsertOp("ghi", {bold: true})])
+      delta = new Delta(9, 9, [new RetainOp(0, 9)])
+      DeltaGen.formatAt(delta, 2, 7, ['italic'], reference)
+      expected = new Delta(9, 9, [new RetainOp(0, 2),
+                                  new RetainOp(2, 3, {italic: true}),
+                                  new RetainOp(3, 9)])
       assert(delta.isEqual(expected), "Expected #{expected} but got #{delta}")
     )
 
