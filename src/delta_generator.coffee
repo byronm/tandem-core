@@ -11,9 +11,16 @@ class DeltaGenerator
       # 'link'      : [true, false],
       'strike'    : [true, false],
       'family'    : ['monospace', 'serif'],
-      'color'     : ['blue', 'green', 'orange', 'red', 'white', 'yellow'],
+      'color'     : ['black', 'blue', 'green', 'orange', 'red', 'white', 'yellow'],
       'size'      : ['huge', 'large', 'small'],
-      # 'background': ['black', 'blue', 'green', 'orange', 'purple', 'red', 'white', 'yellow']
+      'background': ['black', 'blue', 'green', 'orange', 'purple', 'red', 'white', 'yellow']
+
+    default_attribute_value:
+      'background' : 'white',
+      'color'      : 'black',
+      'family'     : 'san-serif',
+      'size'       : 'normal'
+
     alphabet: "abcdefghijklmnopqrstuvwxyz\n"
 
   @getRandomString = (alphabet, length) ->
@@ -116,6 +123,17 @@ class DeltaGenerator
           console.assert "Got retainOp in reference delta!"
     return [head, cur, tail]
 
+  limitScope = (op, tail, attr, referenceOps) ->
+    length = 0
+    val = referenceOps[0].attributes[attr]
+    for refOp in referenceOps
+      if refOp.attributes[attr] != val
+        op.end = op.start + length
+        tail.start = op.end
+        break
+      else
+        length += refOp.getLength()
+
   formatBooleanAttribute = (op, tail, attr, reference) ->
     if Delta.isInsert(op)
       if op.attributes[attr]?
@@ -131,16 +149,7 @@ class DeltaGenerator
         console.assert _.every(referenceOps, (op) -> Delta.isInsert(op)),
           "Formatting a retain that does not refer to an insert."
         if referenceOps.length > 0
-          do ->
-            length = 0
-            val = referenceOps[0].attributes[attr]
-            for refOp in referenceOps
-              if refOp.attributes[attr] != val
-                op.end = op.start + length
-                tail.start = op.end
-                break
-              else
-                length += refOp.getLength()
+          limitScope(op, tail, attr, referenceOps)
           if referenceOps[0].attributes[attr]?
             console.assert referenceOps[0].attributes[attr],
               "Boolean attribute on reference delta should only be true!"
@@ -148,22 +157,27 @@ class DeltaGenerator
           else
             op.attributes[attr] = true
 
-  formatNonBooleanAttribute = (op, attr) =>
+  formatNonBooleanAttribute = (op, tail, attr, reference) =>
     getNewAttrVal = (prevVal) =>
       if prevVal?
-        _.first(_.without(@constants.attributes[attr], prevVal))
+        _.first((_.without(@constants.attributes[attr], prevVal))
       else
-        _.first(@constants.attributes[attr])
+        _.first((_.without(@constants.attributes[attr], @constants.default_attribute_value[attr]))
 
     if Delta.isInsert(op)
       op.attributes[attr] = getNewAttrVal(attr, op.attributes[attr])
     else
       console.assert(Delta.isRetain(op),
         "Expected retain but got #{op}")
-      if op.attributes[attr]? and Math.random() < 0.5
-          delete op.attributes[attr]
-      else
-        op.attributes[attr] = getNewAttrVal(op.attributes[attr])
+      referenceOps = reference.getOpsAt(op.start, op.getLength())
+      console.assert _.every(referenceOps, (op) -> Delta.isInsert(op)),
+        "Formatting a retain that does not refer to an insert."
+      if referenceOps.length > 0
+        limitScope(op, tail, attr, referenceOps)
+        if op.attributes[attr]? and Math.random() < 0.5
+            delete op.attributes[attr]
+        else
+          op.attributes[attr] = getNewAttrVal(op.attributes[attr])
 
   @formatAt: (delta, formatPoint, numToFormat, attrs, reference) ->
     charIndex = 0
@@ -185,8 +199,8 @@ class DeltaGenerator
           switch attr
             when 'bold', 'italic', 'underline', 'strike', 'link'
               formatBooleanAttribute(cur, tail, attr, reference)
-            when 'size', 'family', 'color'
-              formatNonBooleanAttribute(cur, attr)
+            when 'size', 'family', 'color', 'background'
+              formatNonBooleanAttribute(cur, tail, attr, reference)
             else
               console.assert false, "Received unknown attribute: #{attr}"
         formatPoint += curFormat
