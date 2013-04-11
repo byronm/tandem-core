@@ -21,7 +21,7 @@ class DeltaGenerator
       'family'     : 'san-serif',
       'size'       : 'normal'
 
-    alphabet: "abcdefghijklmnopqrstuvwxyz\n"
+    alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  "
 
   @getRandomString = (alphabet, length) ->
     return _.map([0..(length - 1)], ->
