@@ -42,6 +42,18 @@ class Delta
   @makeDelta: (obj) ->
     return new Delta(obj.startLength, obj.endLength, obj.ops)
 
+  @makeDeleteDelta: (startLength, index, length) ->
+    ops = []
+    ops.push(new RetainOp(0, index)) if 0 < index
+    ops.push(new RetainOp(index + length, startLength)) if index + length < startLength
+    return new Delta(startLength, ops)
+
+  @makeInsertDelta: (startLength, index, value, attributes) ->
+    ops = [new InsertOp(value, attributes)]
+    ops.unshift(new RetainOp(0, index)) if 0 < index
+    ops.push(new RetainOp(index, startLength)) if index < startLength
+    return new Delta(startLength, ops)
+
   constructor: (@startLength, @endLength, @ops) ->
     unless @ops?
       @ops = @endLength
