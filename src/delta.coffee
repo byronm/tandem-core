@@ -42,6 +42,18 @@ class Delta
   @makeDelta: (obj) ->
     return new Delta(obj.startLength, obj.endLength, obj.ops)
 
+  @makeDeleteDelta: (startLength, index, length) ->
+    ops = []
+    ops.push(new RetainOp(0, index)) if 0 < index
+    ops.push(new RetainOp(index + length, startLength)) if index + length < startLength
+    return new Delta(startLength, ops)
+
+  @makeInsertDelta: (startLength, index, value, attributes) ->
+    ops = [new InsertOp(value, attributes)]
+    ops.unshift(new RetainOp(0, index)) if 0 < index
+    ops.push(new RetainOp(index, startLength)) if index < startLength
+    return new Delta(startLength, ops)
+
   constructor: (@startLength, @endLength, @ops) ->
     unless @ops?
       @ops = @endLength
@@ -56,7 +68,7 @@ class Delta
       @endLength = length
 
   # insertFn(index, text), deleteFn(index, length), applyAttrFn(index, length, attribute, value)
-  apply: (insertFn, deleteFn, applyAttrFn, context = null) ->
+  apply: (insertFn = (->), deleteFn = (->), applyAttrFn = (->), context = null) ->
     return if this.isIdentity()
     index = 0       # Stores where the last retain end was, so if we see another one, we know to delete
     offset = 0      # Tracks how many characters inserted to correctly offset new text
@@ -218,7 +230,13 @@ class Delta
     return deltaB
 
   diff: (other) ->
-    diffToDelta = (diff) ->
+    [textA, textC] = _.map([this, other], (delta) ->
+      return _.map(delta.ops, (op) ->
+        return if op.value? then op.value else ""
+      ).join('')
+    )
+    unless textA == '' and textC == ''
+      diff = dmp.diff_main(textA, textC)
       console.assert(diff.length > 0, "diffToDelta called with diff with length <= 0")
       originalLength = 0
       finalLength = 0
@@ -236,22 +254,7 @@ class Delta
             ops.push(new RetainOp(originalLength, originalLength + value.length))
             originalLength += value.length
             finalLength += value.length
-      return new Delta(originalLength, finalLength, ops)
-
-    deltaToText = (delta) ->
-      return _.map(delta.ops, (op) ->
-        return if op.value? then op.value else ""
-      ).join('')
-
-    diffTexts = (oldText, newText) ->
-      diff = dmp.diff_main(oldText, newText)
-      return diff
-
-    textA = deltaToText(this)
-    textC = deltaToText(other)
-    unless textA == '' and textC == ''
-      diff = diffTexts(textA, textC)
-      insertDelta = diffToDelta(diff)
+      insertDelta = new Delta(originalLength, finalLength, ops)
     else
       insertDelta = new Delta(0, 0, [])
     return insertDelta
@@ -416,6 +419,17 @@ class Delta
       return Delta.isInsert(op)
     )
 
+  merge: (other) ->
+    thisCopy = Delta.copy(this)
+    otherCopy = Delta.copy(other)
+    _.each(otherCopy.ops, (op) ->
+      if RetainOp.isRetain(op)
+        op.start += thisCopy.startLength
+        op.end += thisCopy.startLength
+    )
+    ops = thisCopy.ops.concat(otherCopy.ops)
+    return new Delta(thisCopy.startLength + otherCopy.startLength, ops)
+
   # XXX: Can we remove normalize all together? We currently seem to rely on it
   # deep copying the ops...
   normalize: ->
@@ -430,6 +444,24 @@ class Delta
           return null
     )
     @ops = _.reject(normalizedOps, (op) -> !op? || op.getLength() == 0)
+
+  split: (index) ->
+    console.assert this.isInsertsOnly(), "Split only implemented for inserts only"
+    console.assert 0 <= index and index <= @endLength, "Split at invalid index"
+    leftOps = []
+    rightOps = []
+    _.reduce(@ops, (offset, op) ->
+      if offset + op.getLength() <= index
+        leftOps.push(InsertOp.copy(op))
+      else if offset >= index
+        rightOps.push(InsertOp.copy(op))
+      else
+        [left, right] = op.split(index - offset)
+        leftOps.push(left)
+        rightOps.push(right)
+      return offset + op.getLength()
+    , 0)
+    return [new Delta(0, leftOps), new Delta(0, rightOps)]
 
   toString: ->
     return "{(#{@startLength}->#{@endLength}) [#{@ops.join(', ')}]}"

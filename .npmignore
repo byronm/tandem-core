@@ -2,6 +2,4 @@ lib
 node_modules
 tests
 vendor
-grunt.js
 tandem-core-rails.gemspec
-coverage.html
