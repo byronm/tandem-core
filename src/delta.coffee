@@ -54,6 +54,12 @@ class Delta
     ops.push(new RetainOp(index, startLength)) if index < startLength
     return new Delta(startLength, ops)
 
+  @makeRetainDelta: (startLength, index, length, attributes) ->
+    ops = [new RetainOp(index, index + length, attributes)]
+    ops.unshift(new RetainOp(0, index)) if 0 < index
+    ops.push(new RetainOp(index + length, startLength)) if index + length < startLength
+    return new Delta(startLength, ops)
+
   constructor: (@startLength, @endLength, @ops) ->
     unless @ops?
       @ops = @endLength
