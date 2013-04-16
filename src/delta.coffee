@@ -33,11 +33,11 @@ class Delta
       return true
     return false
 
-  @isInsert: (change) ->
-    return InsertOp.isInsert(change)
+  @isInsert: (op) ->
+    return InsertOp.isInsert(op)
 
-  @isRetain: (change) ->
-    return RetainOp.isRetain(change) || typeof(change) == "number"
+  @isRetain: (op) ->
+    return RetainOp.isRetain(op)
 
   @makeDelta: (obj) ->
     return new Delta(obj.startLength, obj.endLength, obj.ops)
@@ -110,11 +110,11 @@ class Delta
     delta = this
     console.assert(text.length == delta.startLength, "Start length of delta: " + delta.startLength + " is not equal to the text: " + text.length)
     appliedText = []
-    for elem in delta.ops
-      if Delta.isInsert(elem)
-        appliedText.push(elem.value)
+    for op in delta.ops
+      if Delta.isInsert(op)
+        appliedText.push(op.value)
       else
-        appliedText.push(text.substring(elem.start, elem.end))
+        appliedText.push(text.substring(op.start, op.end))
     result = appliedText.join("")
     if delta.endLength != result.length
       console.log "Delta", delta
@@ -156,17 +156,16 @@ class Delta
     deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops)
 
     composed = []
-    for elem in deltaB.ops
-      elem = new InsertOp(elem) if typeof elem == 'string'
-      if Delta.isInsert(elem)
-        composed.push(elem)
-      else if Delta.isRetain(elem)
-        opsInRange = deltaA.getOpsAt(elem.start, elem.end - elem.start)
-        opsInRange = _.map(opsInRange, (op) ->
-          if Delta.isInsert(op)
-            return new InsertOp(op.value, op.composeAttributes(elem.attributes))
+    for opInB in deltaB.ops
+      if Delta.isInsert(opInB)
+        composed.push(opInB)
+      else if Delta.isRetain(opInB)
+        opsInRange = deltaA.getOpsAt(opInB.start, opInB.end - opInB.start)
+        opsInRange = _.map(opsInRange, (opInA) ->
+          if Delta.isInsert(opInA)
+            return new InsertOp(opInA.value, opInA.composeAttributes(opInB.attributes))
           else
-            return new RetainOp(op.start, op.end, op.composeAttributes(elem.attributes))
+            return new RetainOp(opInA.start, opInA.end, opInA.composeAttributes(opInB.attributes))
         )
         composed = composed.concat(opsInRange)
       else
@@ -190,8 +189,8 @@ class Delta
     deltaC = this
     console.assert(Delta.isDelta(deltaA), "Decompose called when deltaA is not a Delta, type: " + typeof deltaA)
     console.assert(deltaA.startLength == @startLength, "startLength #{deltaA.startLength} / startLength #{@startLength} mismatch")
-    console.assert(_.all(deltaA.ops, ((op) -> return op.value?)), "DeltaA has retain in decompose")
-    console.assert(_.all(deltaC.ops, ((op) -> return op.value?)), "DeltaC has retain in decompose")
+    console.assert(_.all(deltaA.ops, ((op) -> return Delta.isInsert(op))), "DeltaA has retain in decompose")
+    console.assert(_.all(deltaC.ops, ((op) -> return Delta.isInsert(op))), "DeltaC has retain in decompose")
 
     decomposeAttributes = (attrA, attrC) ->
       decomposedAttributes = {}
@@ -437,15 +436,15 @@ class Delta
     ops = thisCopy.ops.concat(otherCopy.ops)
     return new Delta(thisCopy.startLength + otherCopy.startLength, ops)
 
+  # XXX: Can we remove normalize all together? We currently seem to rely on it
+  # deep copying the ops...
   normalize: ->
     normalizedOps = _.map(@ops, (op) ->
       switch typeof op
-        when 'string' then return new InsertOp(op)
-        when 'number' then return new RetainOp(op, op + 1)
         when 'object'
-          if op.value?
+          if Delta.isInsert(op)
             return new InsertOp(op.value, op.attributes)
-          else if op.start? && op.end?
+          else if Delta.isRetain(op)
             return new RetainOp(op.start, op.end, op.attributes)
         else
           return null
