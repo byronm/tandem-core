@@ -25,8 +25,7 @@ class Delta
     if (delta? && typeof delta == "object" && typeof delta.startLength == "number" &&
         typeof delta.endLength == "number" && typeof delta.ops == "object")
       for op in delta.ops
-        if !Delta.isRetain(op) && !Delta.isInsert(op)
-          return false
+        return false unless Delta.isRetain(op) or Delta.isInsert(op)
       return true
     return false
 
