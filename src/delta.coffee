@@ -179,8 +179,7 @@ class Delta
   # 1. Inserts in deltaC are matched against the current elem in deltaA. If
   #    there is a match, we create a corresponding retain in deltaB. Otherwise,
   #    we create an insertion in deltaB.
-  # 2. Retains in deltaC become retains in deltaB, which reference the original
-  #    retain in deltaA.
+  # 2. We disallow retains in either of deltaA or deltaC.
   decompose: (deltaA) ->
     deltaC = this
     console.assert(Delta.isDelta(deltaA), "Decompose called when deltaA is not a Delta, type: " + typeof deltaA)
