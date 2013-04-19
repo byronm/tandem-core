@@ -156,7 +156,7 @@ class Delta
       if Delta.isInsert(opInB)
         composed.push(opInB)
       else if Delta.isRetain(opInB)
-        opsInRange = deltaA.getOpsAt(opInB.start, opInB.end - opInB.start)
+        opsInRange = deltaA.getOpsAt(opInB.start, opInB.getLength())
         opsInRange = _.map(opsInRange, (opInA) ->
           if Delta.isInsert(opInA)
             return new InsertOp(opInA.value, opInA.composeAttributes(opInB.attributes))
