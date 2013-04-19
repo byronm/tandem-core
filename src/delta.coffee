@@ -16,8 +16,7 @@ class Delta
     return new Delta(subject.startLength, subject.endLength, changes)
 
   @getIdentity: (length) ->
-    delta = new Delta(length, length, [new RetainOp(0, length)])
-    return delta
+    return new Delta(length, length, [new RetainOp(0, length)])
 
   @getInitial: (contents) ->
     return new Delta(0, contents.length, [new InsertOp(contents)])
