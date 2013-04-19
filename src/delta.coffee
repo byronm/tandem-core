@@ -3,9 +3,7 @@ Op                = require('./op')
 InsertOp          = require('./insert')
 RetainOp          = require('./retain')
 
-
 dmp = new diff_match_patch()
-
 
 class Delta
   @copy: (subject) ->
