@@ -60,7 +60,6 @@ class Delta
     unless @ops?
       @ops = @endLength
       @endLength = null
-
     @ops = _.map(@ops, (op) ->
       if RetainOp.isRetain(op)
         return RetainOp.copy(op)
