@@ -18,12 +18,11 @@ class Op
     return _.isEqual(@attributes, otherAttributes)
 
   composeAttributes: (attributes) ->
-    that = this
-    resolveAttributes = (oldAttrs, newAttrs) ->
+    resolveAttributes = (oldAttrs, newAttrs) =>
       return oldAttrs if !newAttrs
       resolvedAttrs = _.clone(oldAttrs)
       for key, value of newAttrs
-        if isInsert(that) and value == null
+        if isInsert(this) and value == null
           delete resolvedAttrs[key]
         else if typeof value != 'undefined'
           if typeof resolvedAttrs[key] == 'object' and typeof value == 'object' and _.all([resolvedAttrs[key], newAttrs[key]], ((val) -> val != null))
