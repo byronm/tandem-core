@@ -12,8 +12,8 @@ testComposeAndDecompose = (deltaA, deltaB, expectedComposed, expectedDecomposed)
   composeError =  "Incorrect composition. Got: #{composed.toString()},
     expected: #{expectedComposed.toString()}"
   assert(composed.isEqual(expectedComposed), composeError)
-  return unless _.all(deltaA.ops, ((op) -> return op.value?))
-  return unless _.all(composed.ops, ((op) -> return op.value?))
+  return unless _.all(deltaA.ops, ((op) -> return InsertOp.isInsert(op)))
+  return unless _.all(composed.ops, ((op) -> return InsertOp.isInsert(op)))
   decomposed = composed.decompose(deltaA)
   decomposeError = """Incorrect decomposition. Got: #{decomposed.toString()},
                     expected: #{expectedDecomposed.toString()}"""
