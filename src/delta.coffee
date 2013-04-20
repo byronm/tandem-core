@@ -389,7 +389,8 @@ class Delta
 
   # Given A and B, returns B' s.t. ABB' yields A.
   invert: (deltaB) ->
-    console.assert(this.isInsertsOnly(), "Invert called on invalid delta containing non-insert ops: #{deltaA}")
+    console.assert(this.isInsertsOnly(),
+      "Invert called on invalid delta containing non-insert ops: #{deltaA}")
     deltaA = this
     deltaC = deltaA.compose(deltaB)
     inverse = deltaA.decompose(deltaC)
