@@ -60,6 +60,13 @@ class Delta
     unless @ops?
       @ops = @endLength
       @endLength = null
+
+    @ops = _.map(@ops, (op) ->
+      if RetainOp.isRetain(op)
+        return RetainOp.copy(op)
+      else
+        return InsertOp.copy(op)
+    )
     this.compact()
     length = _.reduce(@ops, (count, op) ->
       return count + op.getLength()
@@ -123,23 +130,18 @@ class Delta
     return Delta.isDelta(delta) and @endLength == delta.startLength
 
   compact: ->
-    this.normalize()
     compacted = []
     _.each(@ops, (op) ->
+      return if op.getLength() == 0
       if compacted.length == 0
-        compacted.push(op) unless RetainOp.isRetain(op) && op.start == op.end
+        compacted.push(op)
       else
-        if RetainOp.isRetain(op) && op.start == op.end
-          return
         last = _.last(compacted)
         if InsertOp.isInsert(last) && InsertOp.isInsert(op) && last.attributesMatch(op)
-          # If two neighboring inserts, combine
           last.value = last.value + op.value
         else if RetainOp.isRetain(last) && RetainOp.isRetain(op) && last.end == op.start && last.attributesMatch(op)
-          # If two neighboring ranges first's end + 1 == second's start, combine
           last.end = op.end
         else
-          # Cannot coalesce with previous
           compacted.push(op)
     )
     @ops = compacted
@@ -430,21 +432,6 @@ class Delta
     )
     ops = thisCopy.ops.concat(otherCopy.ops)
     return new Delta(thisCopy.startLength + otherCopy.startLength, ops)
-
-  # XXX: Can we remove normalize all together? We currently seem to rely on it
-  # deep copying the ops...
-  normalize: ->
-    normalizedOps = _.map(@ops, (op) ->
-      switch typeof op
-        when 'object'
-          if Delta.isInsert(op)
-            return new InsertOp(op.value, op.attributes)
-          else if Delta.isRetain(op)
-            return new RetainOp(op.start, op.end, op.attributes)
-        else
-          return null
-    )
-    @ops = _.reject(normalizedOps, (op) -> !op? || op.getLength() == 0)
 
   split: (index) ->
     console.assert this.isInsertsOnly(), "Split only implemented for inserts only"
