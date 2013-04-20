@@ -64,8 +64,10 @@ class Delta
     @ops = _.map(@ops, (op) ->
       if RetainOp.isRetain(op)
         return RetainOp.copy(op)
-      else
+      else if InsertOp.isInsert(op)
         return InsertOp.copy(op)
+      else
+        console.assert "Creating delta with invalid op: #{op}. Expecting an insert or retain."
     )
     this.compact()
     length = _.reduce(@ops, (count, op) ->
