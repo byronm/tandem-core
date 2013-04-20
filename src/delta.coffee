@@ -140,8 +140,9 @@ class Delta
         last = _.last(compacted)
         if InsertOp.isInsert(last) && InsertOp.isInsert(op) && last.attributesMatch(op)
           last.value = last.value + op.value
-        else if RetainOp.isRetain(last) && RetainOp.isRetain(op) && last.end == op.start && last.attributesMatch(op)
-          last.end = op.end
+        else if RetainOp.isRetain(last) && RetainOp.isRetain(op) &&
+          last.end == op.start && last.attributesMatch(op)
+            last.end = op.end
         else
           compacted.push(op)
     )
