@@ -1,4 +1,3 @@
-assert     = require('chai').assert
 Delta      = require('./delta')
 InsertOp   = require('./insert')
 RetainOp   = require('./retain')
