@@ -10,9 +10,9 @@ class DeltaGenerator
       # 'link'      : [true, false],
       'strike'    : [true, false],
       'family'    : ['monospace', 'serif'],
-      'color'     : ['black', 'blue', 'green', 'orange', 'red', 'white', 'yellow'],
+      'color'     : ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
       'size'      : ['huge', 'large', 'small'],
-      'background': ['black', 'blue', 'green', 'orange', 'purple', 'red', 'white', 'yellow']
+      'background': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
 
     default_attribute_value:
       'background' : 'white',
