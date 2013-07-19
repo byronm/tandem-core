@@ -66,14 +66,14 @@ class Delta
       else if InsertOp.isInsert(op)
         return InsertOp.copy(op)
       else
-        console.assert "Creating delta with invalid op: #{op}. Expecting an insert or retain."
+        throw new Error("Creating delta with invalid op. Expecting an insert or retain.")
     )
     this.compact()
     length = _.reduce(@ops, (count, op) ->
       return count + op.getLength()
     , 0)
-    if @endLength?
-      console.assert(length == @endLength, "Expecting end length of", length, this)
+    if @endLength? and length != @endLength
+      throw new Error("Expecting end length of #{length}")
     else
       @endLength = length
 
@@ -93,8 +93,6 @@ class Delta
           offset -= (op.start - index)
         retains.push(new RetainOp(op.start + offset, op.end + offset, op.attributes))
         index = op.end
-      else
-        console.warn('Unrecognized type in delta', op)
     )
     # If end of text was deleted
     if @endLength < @startLength + offset
@@ -112,7 +110,8 @@ class Delta
 
   applyToText: (text) ->
     delta = this
-    console.assert(text.length == delta.startLength, "Start length of delta: " + delta.startLength + " is not equal to the text: " + text.length)
+    if text.length != delta.startLength
+      throw new Error("Start length of delta: #{delta.startLength} is not equal to the text: #{text.length}")
     appliedText = []
     for op in delta.ops
       if Delta.isInsert(op)
@@ -121,10 +120,7 @@ class Delta
         appliedText.push(text.substring(op.start, op.end))
     result = appliedText.join("")
     if delta.endLength != result.length
-      console.log "Delta", delta
-      console.log "text", text
-      console.log "result", result
-      console.assert(false, "End length of delta: " + delta.endLength + " is not equal to result text: " + result.length )
+      throw new Error("End length of delta: #{delta.endLength} is not equal to result text: #{result.length}")
     return result
 
   canCompose: (delta) ->
@@ -151,10 +147,9 @@ class Delta
   # Inserts in deltaB are given priority. Retains in deltaB are indexes into A,
   # and we take whatever is there (insert or retain).
   compose: (deltaB) ->
-    console.assert(this.canCompose(deltaB), "Cannot compose delta", this, deltaB)
+    throw new Error('Cannot compose delta') unless this.canCompose(deltaB)
     deltaA = new Delta(@startLength, @endLength, @ops)
     deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops)
-
     composed = []
     for opInB in deltaB.ops
       if Delta.isInsert(opInB)
@@ -169,10 +164,8 @@ class Delta
         )
         composed = composed.concat(opsInRange)
       else
-        console.assert(false, "Invalid op in deltaB when composing", deltaB)
-
+        throw new Error('Invalid op in deltaB when composing')
     deltaC = new Delta(deltaA.startLength, deltaB.endLength, composed)
-    console.assert(Delta.isDelta(deltaC), "Composed returning invalid Delta", deltaC)
     return deltaC
 
   # For each element in deltaC, compare it to the current element in deltaA in
@@ -186,10 +179,10 @@ class Delta
   # 2. We disallow retains in either of deltaA or deltaC.
   decompose: (deltaA) ->
     deltaC = this
-    console.assert(Delta.isDelta(deltaA), "Decompose called when deltaA is not a Delta, type: " + typeof deltaA)
-    console.assert(deltaA.startLength == @startLength, "startLength #{deltaA.startLength} / startLength #{@startLength} mismatch")
-    console.assert(_.all(deltaA.ops, ((op) -> return Delta.isInsert(op))), "DeltaA has retain in decompose")
-    console.assert(_.all(deltaC.ops, ((op) -> return Delta.isInsert(op))), "DeltaC has retain in decompose")
+    throw new Error("Decompose called when deltaA is not a Delta, type: " + typeof deltaA) unless Delta.isDelta(deltaA)
+    throw new Error("startLength #{deltaA.startLength} / startLength #{@startLength} mismatch") unless deltaA.startLength == @startLength
+    throw new Error("DeltaA has retain in decompose") unless _.all(deltaA.ops, ((op) -> return Delta.isInsert(op)))
+    throw new Error("DeltaC has retain in decompose") unless _.all(deltaC.ops, ((op) -> return Delta.isInsert(op)))
 
     decomposeAttributes = (attrA, attrC) ->
       decomposedAttributes = {}
@@ -225,7 +218,7 @@ class Delta
             offsetA += opInA.getLength()
           )
         else
-          console.error("Invalid delta in deltaB when composing", deltaB)
+          throw new Error("Invalid delta in deltaB when composing")
         offsetC += opInC.getLength()
       )
       offset += op.getLength()
@@ -242,7 +235,7 @@ class Delta
     )
     unless textA == '' and textC == ''
       diff = dmp.diff_main(textA, textC)
-      console.assert(diff.length > 0, "diffToDelta called with diff with length <= 0")
+      throw new Error("diffToDelta called with diff with length <= 0") if diff.length <= 0
       originalLength = 0
       finalLength = 0
       ops = []
@@ -269,10 +262,9 @@ class Delta
   # 2. Insertions in deltaB become inserted characters in the follow set
   # 3. Characters retained in deltaA and deltaB become retained characters in
   #    the follow set
-  follows: (deltaA, aIsRemote) ->
+  follows: (deltaA, aIsRemote = false) ->
     deltaB = this
-    console.assert(Delta.isDelta(deltaA), "Follows called when deltaA is not a Delta, type: " + typeof deltaA, deltaA)
-    console.assert(aIsRemote?, "Remote delta not specified")
+    throw new Error("Follows called when deltaA is not a Delta, type: " + typeof deltaA) unless Delta.isDelta(deltaA)
 
     deltaA = new Delta(deltaA.startLength, deltaA.endLength, deltaA.ops)
     deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops)
@@ -292,7 +284,7 @@ class Delta
           if length == elemA.getLength()
             elemIndexA++
           else
-            console.assert(length < elemA.getLength())
+            throw new Error("Invalid elem length in follows") unless length < elemA.getLength()
             deltaA.ops[elemIndexA] = _.last(elemA.split(length))
         else
           followSet.push(_.first(elemB.split(length)))
@@ -319,9 +311,7 @@ class Delta
           else if elemB.start < elemA.start
             indexB += elemA.start - elemB.start
             elemB = deltaB.ops[elemIndexB] = new RetainOp(elemA.start, elemB.end, elemB.attributes)
-
-          console.assert(elemA.start == elemB.start, "RetainOps must have same
-          start length when propagating into followset", elemA, elemB)
+          throw new Error("RetainOps must have same start length in follow set") if elemA.start != elemB.start
           length = Math.min(elemA.end, elemB.end) - elemA.start
           addedAttributes = elemA.addAttributes(elemB.attributes)
           followSet.push(new RetainOp(indexA, indexA + length, addedAttributes)) # Keep the retain
@@ -345,8 +335,6 @@ class Delta
         followSet.push(elemB)
         indexB += elemB.getLength()
         elemIndexB++
-      else
-        console.warn("Mismatch. elemA is: " + typeof(elemA) + ", elemB is:  " + typeof(elemB))
 
     # Remaining loops account for different length ops, only inserts will be
     # accepted
@@ -365,9 +353,7 @@ class Delta
     followEndLength = 0
     for elem in followSet
       followEndLength += elem.getLength()
-
     follow = new Delta(followStartLength, followEndLength, followSet)
-    console.assert(Delta.isDelta(follow), "Follows returning invalid Delta", follow)
     return follow
 
   getOpsAt: (index, length) ->
@@ -390,8 +376,7 @@ class Delta
 
   # Given A and B, returns B' s.t. ABB' yields A.
   invert: (deltaB) ->
-    console.assert(this.isInsertsOnly(),
-      "Invert called on invalid delta containing non-insert ops: #{deltaA}")
+    throw new Error("Invert called on invalid delta containing non-insert ops") unless this.isInsertsOnly()
     deltaA = this
     deltaC = deltaA.compose(deltaB)
     inverse = deltaA.decompose(deltaC)
@@ -437,8 +422,8 @@ class Delta
     return new Delta(thisCopy.startLength + otherCopy.startLength, ops)
 
   split: (index) ->
-    console.assert this.isInsertsOnly(), "Split only implemented for inserts only"
-    console.assert 0 <= index and index <= @endLength, "Split at invalid index"
+    throw new Error("Split only implemented for inserts only") unless this.isInsertsOnly()
+    throw new Error("Split at invalid index") unless 0 <= index and index <= @endLength
     leftOps = []
     rightOps = []
     _.reduce(@ops, (offset, op) ->

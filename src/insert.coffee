@@ -27,7 +27,6 @@ class InsertOp extends Op
       throw Error
 
   split: (offset) ->
-    console.assert(offset <= @value.length, "Split called with offset beyond end of insert")
     left = new InsertOp(@value.substr(0, offset), @attributes)
     right = new InsertOp(@value.substr(offset), @attributes)
     return [left, right]
