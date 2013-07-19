@@ -7,12 +7,12 @@ dmp = new diff_match_patch()
 
 class Delta
   @copy: (subject) ->
-    changes = []
-    for op in subject.ops
+    changes = _.map(subject.ops, (op) ->
       if Delta.isRetain(op)
-        changes.push(RetainOp.copy(op))
+        return RetainOp.copy(op)
       else
-        changes.push(InsertOp.copy(op))
+        return InsertOp.copy(op)
+    )
     return new Delta(subject.startLength, subject.endLength, changes)
 
   @getIdentity: (length) ->
