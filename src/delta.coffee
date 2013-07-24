@@ -6,15 +6,6 @@ RetainOp          = require('./retain')
 dmp = new diff_match_patch()
 
 class Delta
-  @copy: (subject) ->
-    changes = _.map(subject.ops, (op) ->
-      if Delta.isRetain(op)
-        return RetainOp.copy(op)
-      else
-        return InsertOp.copy(op)
-    )
-    return new Delta(subject.startLength, subject.endLength, changes)
-
   @getIdentity: (length) ->
     return new Delta(length, length, [new RetainOp(0, length)])
 
@@ -62,9 +53,9 @@ class Delta
       @endLength = null
     @ops = _.map(@ops, (op) ->
       if RetainOp.isRetain(op)
-        return RetainOp.copy(op)
+        return op
       else if InsertOp.isInsert(op)
-        return InsertOp.copy(op)
+        return op
       else
         throw new Error("Creating delta with invalid op. Expecting an insert or retain.")
     )
@@ -135,10 +126,9 @@ class Delta
       else
         last = _.last(compacted)
         if InsertOp.isInsert(last) && InsertOp.isInsert(op) && last.attributesMatch(op)
-          last.value = last.value + op.value
-        else if RetainOp.isRetain(last) && RetainOp.isRetain(op) &&
-          last.end == op.start && last.attributesMatch(op)
-            last.end = op.end
+          compacted[compacted.length - 1] = new InsertOp(last.value + op.value, op.attributes)
+        else if RetainOp.isRetain(last) && RetainOp.isRetain(op) && last.end == op.start && last.attributesMatch(op)
+          compacted[compacted.length - 1] = new RetainOp(last.start, op.end, op.attributes)
         else
           compacted.push(op)
     )
@@ -148,8 +138,7 @@ class Delta
   # and we take whatever is there (insert or retain).
   compose: (deltaB) ->
     throw new Error('Cannot compose delta') unless this.canCompose(deltaB)
-    deltaA = new Delta(@startLength, @endLength, @ops)
-    deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops)
+    deltaA = this
     composed = []
     for opInB in deltaB.ops
       if Delta.isInsert(opInB)
@@ -165,8 +154,7 @@ class Delta
         composed = composed.concat(opsInRange)
       else
         throw new Error('Invalid op in deltaB when composing')
-    deltaC = new Delta(deltaA.startLength, deltaB.endLength, composed)
-    return deltaC
+    return new Delta(deltaA.startLength, deltaB.endLength, composed)
 
   # For each element in deltaC, compare it to the current element in deltaA in
   # order to construct deltaB. Given A and C, there is more than one valid B.
@@ -411,15 +399,14 @@ class Delta
     )
 
   merge: (other) ->
-    thisCopy = Delta.copy(this)
-    otherCopy = Delta.copy(other)
-    _.each(otherCopy.ops, (op) ->
+    ops = _.map(other.ops, (op) =>
       if RetainOp.isRetain(op)
-        op.start += thisCopy.startLength
-        op.end += thisCopy.startLength
+        return new RetainOp(op.start + @startLength, op.end + @startLength, op.attributes)
+      else
+        return op
     )
-    ops = thisCopy.ops.concat(otherCopy.ops)
-    return new Delta(thisCopy.startLength + otherCopy.startLength, ops)
+    ops = @ops.concat(ops)
+    return new Delta(@startLength + other.startLength, ops)
 
   split: (index) ->
     throw new Error("Split only implemented for inserts only") unless this.isInsertsOnly()
@@ -428,9 +415,9 @@ class Delta
     rightOps = []
     _.reduce(@ops, (offset, op) ->
       if offset + op.getLength() <= index
-        leftOps.push(InsertOp.copy(op))
+        leftOps.push(op)
       else if offset >= index
-        rightOps.push(InsertOp.copy(op))
+        rightOps.push(op)
       else
         [left, right] = op.split(index - offset)
         leftOps.push(left)

@@ -66,7 +66,7 @@ describe('Fuzzers', ->
         numToFormat = Math.floor(Math.random() * (deltaA.endLength - indexToFormat))
         DeltaGen.formatAt(deltaA, indexToFormat, numToFormat, attrs, new Delta(0, 0, []))
 
-      deltaC = Delta.copy(deltaA)
+      deltaC = deltaA
       numChanges = Math.floor(Math.random() * 11)
       for j in [0...numChanges]
         DeltaGen.addRandomOp(deltaC, deltaA)

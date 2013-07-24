@@ -2,9 +2,6 @@ Op = require('./op')
 
 
 class InsertOp extends Op
-  @copy: (subject) ->
-    return new InsertOp(subject.value, subject.attributes)
-
   @isInsert: (i) ->
     return i? && typeof i.value == "string"
 

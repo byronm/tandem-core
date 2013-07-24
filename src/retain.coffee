@@ -3,9 +3,6 @@ Op = require('./op')
 
 # Used to represent retains in the delta. [inclusive, exclusive)
 class RetainOp extends Op
-  @copy: (subject) ->
-    return new RetainOp(subject.start, subject.end, subject.attributes)
-
   @isRetain: (r) ->
     return r? && typeof r.start == "number" && typeof r.end == "number"
 
