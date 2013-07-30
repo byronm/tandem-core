@@ -27,7 +27,14 @@ class Delta
     return RetainOp.isRetain(op)
 
   @makeDelta: (obj) ->
-    return new Delta(obj.startLength, obj.endLength, obj.ops)
+    return new Delta(obj.startLength, obj.endLength, _.map(obj.ops, (op) ->
+      if InsertOp.isInsert(op)
+        return new InsertOp(op.value, op.attributes)
+      else if RetainOp.isRetain(op)
+        return new RetainOp(op.start, op.end, op.attributes)
+      else
+        return null
+    ))
 
   @makeDeleteDelta: (startLength, index, length) ->
     ops = []
