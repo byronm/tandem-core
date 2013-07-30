@@ -1,7 +1,7 @@
 module Tandem
   module Core
     module Rails
-      VERSION = "0.3.4"
+      VERSION = "0.4.1"
     end
   end
 end
