@@ -15,5 +15,5 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "railties", "~> 3.1"
   gem.add_dependency "sprockets-commonjs", "~> 0.0.5"
-  gem.add_dependency "underscore-rails", "~> 1.4.3"
+  gem.add_dependency "underscore-rails", "~> 1.5.1"
 end
