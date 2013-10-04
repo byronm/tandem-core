@@ -7,18 +7,18 @@ class DeltaGenerator
     attributes:
       'bold'      : [true, false],
       'italic'    : [true, false],
-      # 'link'      : [true, false],
+      # 'link'    : [true, false],
       'strike'    : [true, false],
-      'family'    : ['monospace', 'serif'],
-      'color'     : ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
-      'size'      : ['huge', 'large', 'small'],
-      'background': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
+      'font-face' : ['monospace', 'serif'],
+      'fore-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
+      'font-size' : ['huge', 'large', 'small'],
+      'back-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
 
     default_attribute_value:
-      'background' : 'white',
-      'color'      : 'black',
-      'family'     : 'san-serif',
-      'size'       : 'normal'
+      'back-color' : 'white',
+      'fore-color' : 'black',
+      'font-face'  : 'san-serif',
+      'font-size'  : 'normal'
 
     alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  "
 
@@ -193,7 +193,7 @@ class DeltaGenerator
           switch attr
             when 'bold', 'italic', 'underline', 'strike', 'link'
               formatBooleanAttribute(cur, tail, attr, reference)
-            when 'size', 'family', 'color', 'background'
+            when 'font-size', 'font-face', 'fore-color', 'back-color'
               formatNonBooleanAttribute(cur, tail, attr, reference)
             else
               throw new Error("Received unknown attribute: #{attr}")
