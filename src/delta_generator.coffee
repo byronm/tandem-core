@@ -7,18 +7,18 @@ class DeltaGenerator
     attributes:
       'bold'      : [true, false],
       'italic'    : [true, false],
-      # 'link'      : [true, false],
+      # 'link'    : [true, false],
       'strike'    : [true, false],
-      'family'    : ['monospace', 'serif'],
-      'color'     : ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
-      'size'      : ['huge', 'large', 'small'],
-      'background': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
+      'font-face' : ['monospace', 'serif'],
+      'fore-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
+      'font-size' : ['huge', 'large', 'small'],
+      'back-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
 
     default_attribute_value:
-      'background' : 'white',
-      'color'      : 'black',
-      'family'     : 'san-serif',
-      'size'       : 'normal'
+      'back-color' : 'white',
+      'fore-color' : 'black',
+      'font-face'  : 'san-serif',
+      'font-size'  : 'normal'
 
     alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  "
 
@@ -68,7 +68,7 @@ class DeltaGenerator
             op.value.substring(deletionPoint - charIndex + curDelete)
           ops.push(new InsertOp(newText)) if newText.length > 0
         else
-          console.assert(Delta.isRetain(op), "Expected retain but got: #{op}")
+          throw new Error("Expected retain but got #{op}") unless Delta.isRetain(op)
           head = new RetainOp(op.start, op.start + deletionPoint - charIndex,
             _.clone(op.attributes))
           tail = new RetainOp(op.start + deletionPoint - charIndex + curDelete,
@@ -98,15 +98,14 @@ class DeltaGenerator
         tailStr = curStr.substring(curStr.indexOf('\n')) + tailStr
         cur = new InsertOp(newCur, _.clone(elem.attributes))
         tail = new InsertOp(tailStr, _.clone(elem.attributes))
-    else
-      console.assert(Delta.isRetain(elem), "Expected retain but got #{elem}")
+    else 
+      throw new Error("Expected retain but got #{elem}") unless Delta.isRetain(elem)
       head = new RetainOp(elem.start, elem.start + splitAt,
         _.clone(elem.attributes))
       cur = new RetainOp(head.end, head.end + length, _.clone(elem.attributes))
       tail = new RetainOp(cur.end, elem.end, _.clone(elem.attributes))
       origOps = reference.getOpsAt(cur.start, cur.getLength())
-      console.assert(_.every(origOps, (op) -> Delta.isInsert(op)),
-        "Non insert op in backref")
+      throw new Error("Non insert op in backref") unless _.every(origOps, (op) -> Delta.isInsert(op))
       marker = cur.start
       for op in origOps
         if Delta.isInsert(op)
@@ -119,7 +118,7 @@ class DeltaGenerator
           else
             marker += op.getLength()
         else
-          console.assert "Got retainOp in reference delta!"
+          throw new Error("Got retainOp in reference delta!")
     return [head, cur, tail]
 
   limitScope = (op, tail, attr, referenceOps) ->
@@ -140,18 +139,16 @@ class DeltaGenerator
       else
         op.attributes[attr] = true
     else
-      console.assert Delta.isRetain(op), "Expected retain but got #{op}"
+      throw new Error("Expected retain but got #{op}") unless Delta.isRetain(op)
       if op.attributes[attr]?
         delete op.attributes[attr]
       else
         referenceOps = reference.getOpsAt(op.start, op.getLength())
-        console.assert _.every(referenceOps, (op) -> Delta.isInsert(op)),
-          "Formatting a retain that does not refer to an insert."
+        throw new Error("Formatting a retain that does not refer to an insert.") unless _.every(referenceOps, (op) -> Delta.isInsert(op))
         if referenceOps.length > 0
           limitScope(op, tail, attr, referenceOps)
           if referenceOps[0].attributes[attr]?
-            console.assert referenceOps[0].attributes[attr],
-              "Boolean attribute on reference delta should only be true!"
+            throw new Error("Boolean attribute on reference delta should only be true!") unless referenceOps[0].attributes[attr]
             op.attributes[attr] = null
           else
             op.attributes[attr] = true
@@ -166,11 +163,9 @@ class DeltaGenerator
     if Delta.isInsert(op)
       op.attributes[attr] = getNewAttrVal(attr, op.attributes[attr])
     else
-      console.assert(Delta.isRetain(op),
-        "Expected retain but got #{op}")
+      throw new Error("Expected retain but got #{op}") unless Delta.isRetain(op)
       referenceOps = reference.getOpsAt(op.start, op.getLength())
-      console.assert _.every(referenceOps, (op) -> Delta.isInsert(op)),
-        "Formatting a retain that does not refer to an insert."
+      throw new Error("Formatting a retain that does not refer to an insert.") unless _.every(referenceOps, (op) -> Delta.isInsert(op))
       if referenceOps.length > 0
         limitScope(op, tail, attr, referenceOps)
         if op.attributes[attr]? and Math.random() < 0.5
@@ -198,10 +193,10 @@ class DeltaGenerator
           switch attr
             when 'bold', 'italic', 'underline', 'strike', 'link'
               formatBooleanAttribute(cur, tail, attr, reference)
-            when 'size', 'family', 'color', 'background'
+            when 'font-size', 'font-face', 'fore-color', 'back-color'
               formatNonBooleanAttribute(cur, tail, attr, reference)
             else
-              console.assert false, "Received unknown attribute: #{attr}"
+              throw new Error("Received unknown attribute: #{attr}")
         formatPoint += curFormat
       else
         ops.push(op)

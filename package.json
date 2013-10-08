@@ -1,8 +1,8 @@
 {
   "name": "tandem-core",
-  "version": "0.3.4",
+  "version": "0.4.4",
   "dependencies": {
-    "underscore": "1.4.x"
+    "underscore": "1.5.x"
   },
   "devDependencies": {
     "chai"                 : "1.4.x",
