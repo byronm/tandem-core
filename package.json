@@ -1,6 +1,13 @@
 {
   "name": "tandem-core",
   "version": "0.4.4",
+  "contributors": [{
+    "name": "Jason Chen",
+    "email": "jhchen7@gmail.com"
+  }, {
+    "name": "Byron Milligan",
+    "email": "byronner@gmail.com"  
+  }],
   "dependencies": {
     "underscore": "1.5.x"
   },
@@ -14,6 +21,14 @@
   "main": "index",
   "engines": {
     "node": ">=0.8"
+  },
+  "license": {
+    "type": "BSD",
+    "url": "https://github.com/stypi/tandem-core/blob/master/LICENSE"  
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stypi/tandem-core"
   },
   "scripts": {
     "test": "make test"
