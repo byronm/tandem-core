@@ -9,7 +9,7 @@ class DeltaGenerator
       'italic'    : [true, false],
       # 'link'    : [true, false],
       'strike'    : [true, false],
-      'font-face' : ['monospace', 'serif'],
+      'font-name' : ['monospace', 'serif'],
       'fore-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
       'font-size' : ['huge', 'large', 'small'],
       'back-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
@@ -17,7 +17,7 @@ class DeltaGenerator
     default_attribute_value:
       'back-color' : 'white',
       'fore-color' : 'black',
-      'font-face'  : 'san-serif',
+      'font-name'  : 'san-serif',
       'font-size'  : 'normal'
 
     alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  "
@@ -193,7 +193,7 @@ class DeltaGenerator
           switch attr
             when 'bold', 'italic', 'underline', 'strike', 'link'
               formatBooleanAttribute(cur, tail, attr, reference)
-            when 'font-size', 'font-face', 'fore-color', 'back-color'
+            when 'font-size', 'font-name', 'fore-color', 'back-color'
               formatNonBooleanAttribute(cur, tail, attr, reference)
             else
               throw new Error("Received unknown attribute: #{attr}")
