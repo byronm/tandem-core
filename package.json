@@ -1,30 +1,35 @@
 {
   "name": "tandem-core",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "contributors": [{
     "name": "Jason Chen",
     "email": "jhchen7@gmail.com"
   }, {
     "name": "Byron Milligan",
-    "email": "byronner@gmail.com"  
+    "email": "byronner@gmail.com"
   }],
   "dependencies": {
-    "underscore": "1.5.x"
+    "underscore"           : "1.5.x"
   },
   "devDependencies": {
     "chai"                 : "1.4.x",
     "coffee-script"        : "1.6.x",
+    "coffeeify"            : "0.5.x",
     "commander"            : "0.6.x",
+    "grunt"                : "0.4.x",
+    "grunt-browserify"     : "1.2.x",
+    "grunt-contrib-coffee" : "0.7.x",
+    "grunt-contrib-concat" : "0.1.x",
+    "grunt-contrib-watch"  : "0.5.x",
     "mocha"                : "1.8.x"
   },
-  "browser": "browser",
   "main": "index",
   "engines": {
     "node": ">=0.8"
   },
   "license": {
     "type": "BSD",
-    "url": "https://github.com/stypi/tandem-core/blob/master/LICENSE"  
+    "url": "https://github.com/stypi/tandem-core/blob/master/LICENSE"
   },
   "repository": {
     "type": "git",
@@ -32,5 +37,8 @@
   },
   "scripts": {
     "test": "make test"
+  },
+  "bugs": {
+    "url": "https://github.com/stypi/tandem-core/issues"
   }
 }
