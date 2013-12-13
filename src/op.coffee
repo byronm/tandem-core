@@ -1,3 +1,5 @@
+_ = require('underscore')._
+
 # TODO fix code duplication
 isInsert = (i) ->
   return i? && typeof i.value == "string"

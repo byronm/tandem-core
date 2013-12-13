@@ -1,4 +1,1 @@
-GLOBAL._  = require('underscore')._
-Tandem    = require('./build/tandem-core')
-
-module.exports = Tandem
+module.exports = require('./build/tandem-core')

@@ -1,5 +1,7 @@
 (function() {
-  var Delta, DeltaGenerator, InsertOp, RetainOp;
+  var Delta, DeltaGenerator, InsertOp, RetainOp, _;
+
+  _ = require('underscore')._;
 
   Delta = require('./delta');
 

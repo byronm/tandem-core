@@ -1,5 +1,7 @@
 (function() {
-  var Delta, InsertOp, Op, RetainOp, diff_match_patch, dmp;
+  var Delta, InsertOp, Op, RetainOp, diff_match_patch, dmp, _;
+
+  _ = require('underscore')._;
 
   diff_match_patch = require('./diff_match_patch');
 

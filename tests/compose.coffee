@@ -1,9 +1,9 @@
-assert = require('chai').assert
-
-Tandem = require('../index')
-Delta      = Tandem.Delta
-InsertOp   = Tandem.InsertOp
-RetainOp   = Tandem.RetainOp
+_        = require('underscore')._
+assert   = require('chai').assert
+Tandem   = require('../index')
+Delta    = Tandem.Delta
+InsertOp = Tandem.InsertOp
+RetainOp = Tandem.RetainOp
 
 # Note: Though this file is dedicated to testing compose, we test decompose here
 # as well since it's trivial to do so.

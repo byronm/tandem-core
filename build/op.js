@@ -1,5 +1,7 @@
 (function() {
-  var Op, isInsert;
+  var Op, isInsert, _;
+
+  _ = require('underscore')._;
 
   isInsert = function(i) {
     return (i != null) && typeof i.value === "string";
