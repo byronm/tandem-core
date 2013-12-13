@@ -1,5 +1,9 @@
 lib
 node_modules
+src
 tests
 vendor
+.travis.yml
+Gruntfile.coffee
+Makefile
 tandem-core-rails.gemspec
