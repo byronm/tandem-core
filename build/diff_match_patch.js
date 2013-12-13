@@ -1,4 +1,4 @@
-/*! Tandem Core - v0.4.5 - 2013-12-13
+/*! Tandem Core - v0.4.6 - 2013-12-13
  *  https://www.stypi.com/
  *  Copyright (c) 2013
  *  Jason Chen, Salesforce.com

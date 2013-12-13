@@ -2,6 +2,7 @@ pkgJson = require('./package.json')
 
 module.exports = (grunt) ->
 
+  grunt.loadNpmTasks('grunt-contrib-clean')
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-concat')
   grunt.loadNpmTasks('grunt-contrib-watch')
@@ -9,6 +10,8 @@ module.exports = (grunt) ->
   grunt.initConfig(
     meta:
       version: pkgJson.version
+
+    clean: ['build']
 
     coffee:
       src:
@@ -29,7 +32,8 @@ module.exports = (grunt) ->
           ' */\n\n'
       src:
         expand: true
-        dest: ''
+        dest: 'build/'
+        flatten: true
         src: ['build/*.js']
         ext: '.js'
 
@@ -38,4 +42,4 @@ module.exports = (grunt) ->
       tasks: ['default']
   )
 
-  grunt.registerTask('default', ['coffee', 'concat'])
+  grunt.registerTask('default', ['clean', 'coffee', 'concat'])
