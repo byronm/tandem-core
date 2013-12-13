@@ -20,6 +20,7 @@ The tandem source code is in the **src** folder. Tests are in the **tests** fold
 
 All other files/directories are just supporting npm/bundler, build, or documentation files.
 
+    build - javascript output
     lib - bundler
     src - source code
     tests - tests written for Mocha on node.js
@@ -46,6 +47,6 @@ We use the mocha testing framework. To run:
 
 To run code coverage tests:
 
-    make coverage
+    make cov
 
 Visit coverage/lcov-report/index.html in your browser to see the output.

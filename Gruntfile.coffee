@@ -2,7 +2,6 @@ pkgJson = require('./package.json')
 
 module.exports = (grunt) ->
 
-  grunt.loadNpmTasks('grunt-browserify')
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-concat')
   grunt.loadNpmTasks('grunt-contrib-watch')
@@ -12,19 +11,12 @@ module.exports = (grunt) ->
       version: pkgJson.version
 
     coffee:
-      tests:
+      src:
         expand: true
         dest: 'build/'
-        src: ['tests/client/*.coffee']
+        flatten: true
+        src: ['src/*.coffee']
         ext: '.js'
-
-    browserify:
-      options:
-        extensions: ['.js', '.coffee']
-        standalone: 'tandem-core'
-        transform: ['coffeeify']
-      tandem_core:
-        files: [{ dest: 'build/tandem-core.js', src: ['browser.js'] }]
 
     concat:
       options:
@@ -35,11 +27,15 @@ module.exports = (grunt) ->
           ' *  Jason Chen, Salesforce.com\n' +
           ' *  Byron Milligan, Salesforce.com\n' + 
           ' */\n\n'
-      'build/tandem-core.js': ['build/tandem-core.js']
+      src:
+        expand: true
+        dest: ''
+        src: ['build/*.js']
+        ext: '.js'
 
     watch:
       files: ['src/*.coffee']
       tasks: ['default']
   )
 
-  grunt.registerTask('default', ['coffee', 'browserify', 'concat'])
+  grunt.registerTask('default', ['coffee', 'concat'])

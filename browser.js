@@ -1,1 +1,1 @@
-module.exports = require('./src/tandem')
+module.exports = require('./build/tandem-core')

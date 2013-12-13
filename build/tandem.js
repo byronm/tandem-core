@@ -5,6 +5,20 @@
  *  Byron Milligan, Salesforce.com
  */
 
+/*! Tandem Core - v0.4.5 - 2013-12-13
+ *  https://www.stypi.com/
+ *  Copyright (c) 2013
+ *  Jason Chen, Salesforce.com
+ *  Byron Milligan, Salesforce.com
+ */
+
+/*! Tandem Core - v0.4.5 - 2013-12-13
+ *  https://www.stypi.com/
+ *  Copyright (c) 2013
+ *  Jason Chen, Salesforce.com
+ *  Byron Milligan, Salesforce.com
+ */
+
 (function() {
   module.exports = {
     Delta: require('./delta'),

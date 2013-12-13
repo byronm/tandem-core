@@ -1,6 +1,6 @@
 {
   "name": "tandem-core",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "contributors": [{
     "name": "Jason Chen",
     "email": "jhchen7@gmail.com"
@@ -14,10 +14,9 @@
   "devDependencies": {
     "chai"                 : "1.4.x",
     "coffee-script"        : "1.6.x",
-    "coffeeify"            : "0.5.x",
     "commander"            : "0.6.x",
+    "googlediff"           : "0.1.x",
     "grunt"                : "0.4.x",
-    "grunt-browserify"     : "1.2.x",
     "grunt-contrib-coffee" : "0.7.x",
     "grunt-contrib-concat" : "0.1.x",
     "grunt-contrib-watch"  : "0.5.x",
