@@ -44,8 +44,8 @@ We use the mocha testing framework. To run:
 
     make test
 
-To run code coverage tests, install https://github.com/visionmedia/node-jscoverage and run
+To run code coverage tests:
 
     make coverage
 
-Visit coverage.html in your browser to see the output.
+Visit coverage/lcov-report/index.html in your browser to see the output.
