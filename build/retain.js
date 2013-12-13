@@ -1,10 +1,3 @@
-/*! Tandem Core - v0.4.6 - 2013-12-13
- *  https://www.stypi.com/
- *  Copyright (c) 2013
- *  Jason Chen, Salesforce.com
- *  Byron Milligan, Salesforce.com
- */
-
 (function() {
   var Op, RetainOp,
     __hasProp = {}.hasOwnProperty,
