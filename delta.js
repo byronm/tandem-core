@@ -1,1 +1,1 @@
-module.exports = require('./src/delta.coffee')
+module.exports = require('./build/delta.js')

@@ -8,6 +8,8 @@ Tandem Core
 
 This repository is also both a Rails gem and a Node.js module.
 
+[![Build Status](https://secure.travis-ci.org/stypi/tandem-core.png?branch=master)](http://travis-ci.org/stypi/tandem-core)
+
 
 Project Organization
 ---
@@ -18,6 +20,7 @@ The tandem source code is in the **src** folder. Tests are in the **tests** fold
 
 All other files/directories are just supporting npm/bundler, build, or documentation files.
 
+    build - javascript output
     lib - bundler
     src - source code
     tests - tests written for Mocha on node.js
@@ -42,8 +45,8 @@ We use the mocha testing framework. To run:
 
     make test
 
-To run code coverage tests, install https://github.com/visionmedia/node-jscoverage and run
+To run code coverage tests:
 
-    make coverage
+    make cov
 
-Visit coverage.html in your browser to see the output.
+Visit coverage/lcov-report/index.html in your browser to see the output.

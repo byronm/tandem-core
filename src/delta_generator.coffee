@@ -1,3 +1,4 @@
+_          = require('underscore')._
 Delta      = require('./delta')
 InsertOp   = require('./insert')
 RetainOp   = require('./retain')

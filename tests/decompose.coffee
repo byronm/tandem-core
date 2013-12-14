@@ -1,9 +1,9 @@
-assert = require('chai').assert
-
-Tandem = require('../index')
-Delta      = Tandem.Delta
-InsertOp   = Tandem.InsertOp
-RetainOp   = Tandem.RetainOp
+_        = require('underscore')._
+assert   = require('chai').assert
+Tandem   = require('../index')
+Delta    = Tandem.Delta
+InsertOp = Tandem.InsertOp
+RetainOp = Tandem.RetainOp
 
 testDecompose = (deltaA, deltaC, expectedDecomposed) ->
   return unless _.all(deltaA.ops, ((op) -> return op.value?))

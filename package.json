@@ -1,6 +1,6 @@
 {
   "name": "tandem-core",
-  "version": "0.4.4",
+  "version": "0.4.7",
   "contributors": [{
     "name": "Jason Chen",
     "email": "jhchen7@gmail.com"
@@ -9,15 +9,20 @@
     "email": "byronner@gmail.com"
   }],
   "dependencies": {
-    "underscore": "1.5.x"
+    "googlediff"           : "0.1.x",
+    "underscore"           : "1.5.x"
   },
   "devDependencies": {
     "chai"                 : "1.4.x",
     "coffee-script"        : "1.6.x",
     "commander"            : "0.6.x",
+    "grunt"                : "0.4.x",
+    "grunt-contrib-clean"  : "0.5.x",
+    "grunt-contrib-coffee" : "0.7.x",
+    "grunt-contrib-watch"  : "0.5.x",
+    "istanbul"             : "0.1.x",
     "mocha"                : "1.8.x"
   },
-  "browser": "browser",
   "main": "index",
   "engines": {
     "node": ">=0.8"
@@ -32,5 +37,8 @@
   },
   "scripts": {
     "test": "make test"
+  },
+  "bugs": {
+    "url": "https://github.com/stypi/tandem-core/issues"
   }
 }
