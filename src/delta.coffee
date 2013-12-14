@@ -260,7 +260,8 @@ class Delta
   #    the follow set
   follows: (deltaA, aIsRemote = false) ->
     deltaB = this
-    throw new Error("Follows called when deltaA is not a Delta, type: " + typeof deltaA) unless Delta.isDelta(deltaA)
+    errMsg = "Follows called when deltaA is not a Delta, type: "
+    throw new Error(errMsg + typeof deltaA) unless Delta.isDelta(deltaA)
 
     deltaA = new Delta(deltaA.startLength, deltaA.endLength, deltaA.ops)
     deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops)
@@ -280,7 +281,8 @@ class Delta
           if length == elemA.getLength()
             elemIndexA++
           else
-            throw new Error("Invalid elem length in follows") unless length < elemA.getLength()
+            if length >= elemA.getLength()
+              throw new Error("Invalid elem length in follows")
             deltaA.ops[elemIndexA] = _.last(elemA.split(length))
         else
           followSet.push(_.first(elemB.split(length)))
@@ -303,14 +305,19 @@ class Delta
           # A subrange or the entire range matches
           if elemA.start < elemB.start
             indexA += elemB.start - elemA.start
-            elemA = deltaA.ops[elemIndexA] = new RetainOp(elemB.start, elemA.end, elemA.attributes)
+            elemA = deltaA.ops[elemIndexA] = new RetainOp(elemB.start,
+              elemA.end, elemA.attributes)
           else if elemB.start < elemA.start
             indexB += elemA.start - elemB.start
-            elemB = deltaB.ops[elemIndexB] = new RetainOp(elemA.start, elemB.end, elemB.attributes)
-          throw new Error("RetainOps must have same start length in follow set") if elemA.start != elemB.start
+            elemB = deltaB.ops[elemIndexB] = new RetainOp(elemA.start,
+              elemB.end, elemB.attributes)
+          errMsg = "RetainOps must have same start length in follow set"
+          throw new Error(errMsg) if elemA.start != elemB.start
           length = Math.min(elemA.end, elemB.end) - elemA.start
           addedAttributes = elemA.addAttributes(elemB.attributes)
-          followSet.push(new RetainOp(indexA, indexA + length, addedAttributes)) # Keep the retain
+          # Keep the retain
+          followSet.push(new RetainOp(indexA, indexA + length,
+            addedAttributes))
           indexA += length
           indexB += length
           if (elemA.end == elemB.end)
@@ -336,7 +343,8 @@ class Delta
     # accepted
     while elemIndexA < deltaA.ops.length
       elemA = deltaA.ops[elemIndexA]
-      followSet.push(new RetainOp(indexA, indexA + elemA.getLength())) if Delta.isInsert(elemA) # retain elemA
+      if Delta.isInsert(elemA) # retain elemA
+        followSet.push(new RetainOp(indexA, indexA + elemA.getLength()))
       indexA += elemA.getLength()
       elemIndexA++
 

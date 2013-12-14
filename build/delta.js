@@ -370,13 +370,14 @@
     };
 
     Delta.prototype.follows = function(deltaA, aIsRemote) {
-      var addedAttributes, deltaB, elem, elemA, elemB, elemIndexA, elemIndexB, follow, followEndLength, followSet, followStartLength, indexA, indexB, length, _i, _len;
+      var addedAttributes, deltaB, elem, elemA, elemB, elemIndexA, elemIndexB, errMsg, follow, followEndLength, followSet, followStartLength, indexA, indexB, length, _i, _len;
       if (aIsRemote == null) {
         aIsRemote = false;
       }
       deltaB = this;
+      errMsg = "Follows called when deltaA is not a Delta, type: ";
       if (!Delta.isDelta(deltaA)) {
-        throw new Error("Follows called when deltaA is not a Delta, type: " + typeof deltaA);
+        throw new Error(errMsg + typeof deltaA);
       }
       deltaA = new Delta(deltaA.startLength, deltaA.endLength, deltaA.ops);
       deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops);
@@ -395,7 +396,7 @@
             if (length === elemA.getLength()) {
               elemIndexA++;
             } else {
-              if (!(length < elemA.getLength())) {
+              if (length >= elemA.getLength()) {
                 throw new Error("Invalid elem length in follows");
               }
               deltaA.ops[elemIndexA] = _.last(elemA.split(length));
@@ -424,8 +425,9 @@
               indexB += elemA.start - elemB.start;
               elemB = deltaB.ops[elemIndexB] = new RetainOp(elemA.start, elemB.end, elemB.attributes);
             }
+            errMsg = "RetainOps must have same start length in follow set";
             if (elemA.start !== elemB.start) {
-              throw new Error("RetainOps must have same start length in follow set");
+              throw new Error(errMsg);
             }
             length = Math.min(elemA.end, elemB.end) - elemA.start;
             addedAttributes = elemA.addAttributes(elemB.attributes);

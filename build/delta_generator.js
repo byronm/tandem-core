@@ -20,7 +20,7 @@
         'bold': [true, false],
         'italic': [true, false],
         'strike': [true, false],
-        'font-face': ['monospace', 'serif'],
+        'font-name': ['monospace', 'serif'],
         'fore-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow'],
         'font-size': ['huge', 'large', 'small'],
         'back-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
@@ -28,7 +28,7 @@
       default_attribute_value: {
         'back-color': 'white',
         'fore-color': 'black',
-        'font-face': 'san-serif',
+        'font-name': 'san-serif',
         'font-size': 'normal'
       },
       alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  "
@@ -282,7 +282,7 @@
                 formatBooleanAttribute(cur, tail, attr, reference);
                 break;
               case 'font-size':
-              case 'font-face':
+              case 'font-name':
               case 'fore-color':
               case 'back-color':
                 formatNonBooleanAttribute(cur, tail, attr, reference);
