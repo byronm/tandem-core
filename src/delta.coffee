@@ -266,7 +266,7 @@ class Delta
     deltaA = new Delta(deltaA.startLength, deltaA.endLength, deltaA.ops)
     deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops)
     followStartLength = deltaA.endLength
-    followSet = []
+    followOps = []
     indexA = indexB = 0 # Tracks character offset in the 'document'
     elemIndexA = elemIndexB = 0 # Tracks offset into the ops list
     while elemIndexA < deltaA.ops.length and elemIndexB < deltaB.ops.length
@@ -276,7 +276,7 @@ class Delta
       if Delta.isInsert(elemA) and Delta.isInsert(elemB)
         length = Math.min(elemA.getLength(), elemB.getLength())
         if aIsRemote
-          followSet.push(new RetainOp(indexA, indexA + length))
+          followOps.push(new RetainOp(indexA, indexA + length))
           indexA += length
           if length == elemA.getLength()
             elemIndexA++
@@ -285,7 +285,7 @@ class Delta
               throw new Error("Invalid elem length in follows")
             deltaA.ops[elemIndexA] = _.last(elemA.split(length))
         else
-          followSet.push(_.first(elemB.split(length)))
+          followOps.push(_.first(elemB.split(length)))
           indexB += length
           if length == elemB.getLength()
             elemIndexB++
@@ -316,7 +316,7 @@ class Delta
           length = Math.min(elemA.end, elemB.end) - elemA.start
           addedAttributes = elemA.addAttributes(elemB.attributes)
           # Keep the retain
-          followSet.push(new RetainOp(indexA, indexA + length,
+          followOps.push(new RetainOp(indexA, indexA + length,
             addedAttributes))
           indexA += length
           indexB += length
@@ -331,11 +331,11 @@ class Delta
             elemIndexB++
 
       else if Delta.isInsert(elemA) and Delta.isRetain(elemB)
-        followSet.push(new RetainOp(indexA, indexA + elemA.getLength()))
+        followOps.push(new RetainOp(indexA, indexA + elemA.getLength()))
         indexA += elemA.getLength()
         elemIndexA++
       else if Delta.isRetain(elemA) and Delta.isInsert(elemB)
-        followSet.push(elemB)
+        followOps.push(elemB)
         indexB += elemB.getLength()
         elemIndexB++
 
@@ -344,20 +344,20 @@ class Delta
     while elemIndexA < deltaA.ops.length
       elemA = deltaA.ops[elemIndexA]
       if Delta.isInsert(elemA) # retain elemA
-        followSet.push(new RetainOp(indexA, indexA + elemA.getLength()))
+        followOps.push(new RetainOp(indexA, indexA + elemA.getLength()))
       indexA += elemA.getLength()
       elemIndexA++
 
     while elemIndexB < deltaB.ops.length
       elemB = deltaB.ops[elemIndexB]
-      followSet.push(elemB) if Delta.isInsert(elemB) # insert elemB
+      followOps.push(elemB) if Delta.isInsert(elemB) # insert elemB
       indexB += elemB.getLength()
       elemIndexB++
 
     followEndLength = 0
-    for elem in followSet
+    for elem in followOps
       followEndLength += elem.getLength()
-    follow = new Delta(followStartLength, followEndLength, followSet)
+    follow = new Delta(followStartLength, followEndLength, followOps)
     return follow
 
   getOpsAt: (index, length) ->

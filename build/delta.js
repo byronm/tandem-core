@@ -370,7 +370,7 @@
     };
 
     Delta.prototype.follows = function(deltaA, aIsRemote) {
-      var addedAttributes, deltaB, elem, elemA, elemB, elemIndexA, elemIndexB, errMsg, follow, followEndLength, followSet, followStartLength, indexA, indexB, length, _i, _len;
+      var addedAttributes, deltaB, elem, elemA, elemB, elemIndexA, elemIndexB, errMsg, follow, followEndLength, followOps, followStartLength, indexA, indexB, length, _i, _len;
       if (aIsRemote == null) {
         aIsRemote = false;
       }
@@ -382,7 +382,7 @@
       deltaA = new Delta(deltaA.startLength, deltaA.endLength, deltaA.ops);
       deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops);
       followStartLength = deltaA.endLength;
-      followSet = [];
+      followOps = [];
       indexA = indexB = 0;
       elemIndexA = elemIndexB = 0;
       while (elemIndexA < deltaA.ops.length && elemIndexB < deltaB.ops.length) {
@@ -391,7 +391,7 @@
         if (Delta.isInsert(elemA) && Delta.isInsert(elemB)) {
           length = Math.min(elemA.getLength(), elemB.getLength());
           if (aIsRemote) {
-            followSet.push(new RetainOp(indexA, indexA + length));
+            followOps.push(new RetainOp(indexA, indexA + length));
             indexA += length;
             if (length === elemA.getLength()) {
               elemIndexA++;
@@ -402,7 +402,7 @@
               deltaA.ops[elemIndexA] = _.last(elemA.split(length));
             }
           } else {
-            followSet.push(_.first(elemB.split(length)));
+            followOps.push(_.first(elemB.split(length)));
             indexB += length;
             if (length === elemB.getLength()) {
               elemIndexB++;
@@ -431,7 +431,7 @@
             }
             length = Math.min(elemA.end, elemB.end) - elemA.start;
             addedAttributes = elemA.addAttributes(elemB.attributes);
-            followSet.push(new RetainOp(indexA, indexA + length, addedAttributes));
+            followOps.push(new RetainOp(indexA, indexA + length, addedAttributes));
             indexA += length;
             indexB += length;
             if (elemA.end === elemB.end) {
@@ -446,11 +446,11 @@
             }
           }
         } else if (Delta.isInsert(elemA) && Delta.isRetain(elemB)) {
-          followSet.push(new RetainOp(indexA, indexA + elemA.getLength()));
+          followOps.push(new RetainOp(indexA, indexA + elemA.getLength()));
           indexA += elemA.getLength();
           elemIndexA++;
         } else if (Delta.isRetain(elemA) && Delta.isInsert(elemB)) {
-          followSet.push(elemB);
+          followOps.push(elemB);
           indexB += elemB.getLength();
           elemIndexB++;
         }
@@ -458,7 +458,7 @@
       while (elemIndexA < deltaA.ops.length) {
         elemA = deltaA.ops[elemIndexA];
         if (Delta.isInsert(elemA)) {
-          followSet.push(new RetainOp(indexA, indexA + elemA.getLength()));
+          followOps.push(new RetainOp(indexA, indexA + elemA.getLength()));
         }
         indexA += elemA.getLength();
         elemIndexA++;
@@ -466,17 +466,17 @@
       while (elemIndexB < deltaB.ops.length) {
         elemB = deltaB.ops[elemIndexB];
         if (Delta.isInsert(elemB)) {
-          followSet.push(elemB);
+          followOps.push(elemB);
         }
         indexB += elemB.getLength();
         elemIndexB++;
       }
       followEndLength = 0;
-      for (_i = 0, _len = followSet.length; _i < _len; _i++) {
-        elem = followSet[_i];
+      for (_i = 0, _len = followOps.length; _i < _len; _i++) {
+        elem = followOps[_i];
         followEndLength += elem.getLength();
       }
-      follow = new Delta(followStartLength, followEndLength, followSet);
+      follow = new Delta(followStartLength, followEndLength, followOps);
       return follow;
     };
 
