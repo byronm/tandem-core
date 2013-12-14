@@ -395,11 +395,10 @@
             indexA += length;
             if (length === elemA.getLength()) {
               elemIndexA++;
-            } else {
-              if (length >= elemA.getLength()) {
-                throw new Error("Invalid elem length in follows");
-              }
+            } else if (length < elemA.getLength()) {
               deltaA.ops[elemIndexA] = _.last(elemA.split(length));
+            } else {
+              throw new Error("Invalid elem length in follows");
             }
           } else {
             followOps.push(_.first(elemB.split(length)));
