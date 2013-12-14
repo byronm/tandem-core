@@ -1,10 +1,10 @@
-assert = require('chai').assert
-
-Tandem = require('../index')
-Delta      = Tandem.Delta
-InsertOp   = Tandem.InsertOp
-RetainOp   = Tandem.RetainOp
-DeltaGen   = Tandem.DeltaGen
+_        = require('underscore')._
+assert   = require('chai').assert
+Tandem   = require('../index')
+Delta    = Tandem.Delta
+InsertOp = Tandem.InsertOp
+RetainOp = Tandem.RetainOp
+DeltaGen = Tandem.DeltaGen
 
 ##############################
 # Fuzzer to test compose, follows, and applyDeltaToText.
