@@ -334,6 +334,7 @@ class Delta
         followOps.push(new RetainOp(indexA, indexA + elemA.getLength()))
         indexA += elemA.getLength()
         elemIndexA++
+
       else if Delta.isRetain(elemA) and Delta.isInsert(elemB)
         followOps.push(elemB)
         indexB += elemB.getLength()
