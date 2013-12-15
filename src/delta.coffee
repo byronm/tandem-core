@@ -253,6 +253,83 @@ class Delta
       insertDelta = new Delta(0, 0, [])
     return insertDelta
 
+  createReturnObj = ->
+    indexA: null
+    indexB: null
+    elemIndexA: null
+    elemIndexB: null
+    elemA: null
+    elemB: null
+    followOp: null
+
+  insertInsertCase = (elemA, elemB, indexes, aIsRemote) ->
+    results = createReturnObj()
+    {indexA, indexB, elemIndexA, elemIndexB} = indexes
+    length = Math.min(elemA.getLength(), elemB.getLength())
+    if aIsRemote
+      results.followOp = new RetainOp(indexA, indexA + length)
+      results.indexA = indexA + length
+      if length == elemA.getLength()
+        results.elemIndexA = elemIndexA + 1
+      else if length < elemA.getLength()
+        results.elemA = _.last(elemA.split(length))
+      else
+        throw new Error("Invalid elem length in follows")
+    else
+      results.followOp = _.first(elemB.split(length))
+      results.indexB = indexB + length
+      if length == elemB.getLength()
+        results.elemIndexB = elemIndexB + 1
+      else
+        results.elemB = _.last(elemB.split(length))
+    return results
+
+  retainRetainCase = (elemA, elemB, indexes) ->
+    {indexA, indexB, elemIndexA, elemIndexB} = indexes
+    results = _.extend(createReturnObj(), indexes)
+    if elemA.end < elemB.start
+      # The retains don't match, so throw away the lower and advance.
+      results.indexA += elemA.getLength()
+      results.elemIndexA++
+    else if elemB.end < elemA.start
+      # The retains don't match, so throw away the lower and advance.
+      results.indexB += elemB.getLength()
+      results.elemIndexB++
+    else
+      # A subrange or the entire range matches
+      if elemA.start < elemB.start
+        results.indexA += (elemB.start - elemA.start)
+        elemA = results.elemA = new RetainOp(elemB.start, elemA.end,
+          elemA.attributes)
+      else if elemB.start < elemA.start
+        results.indexB += (elemA.start - elemB.start)
+        elemB = results.elemB = new RetainOp(elemA.start, elemB.end,
+          elemB.attributes)
+      errMsg = "RetainOps must have same start length in follow set"
+      throw new Error(errMsg) if elemA.start != elemB.start
+      length = Math.min(elemA.end, elemB.end) - elemA.start
+      addedAttributes = elemA.addAttributes(elemB.attributes)
+      # Keep the retain
+      results.followOp = new RetainOp(results.indexA, results.indexA + length, addedAttributes)
+      results.indexA += length
+      results.indexB += length
+      if (elemA.end == elemB.end)
+        results.elemIndexA++
+        results.elemIndexB++
+      else if (elemA.end < elemB.end)
+        results.elemIndexA++
+        results.elemB = _.last(elemB.split(length))
+      else
+        results.elemIndexB++
+        results.elemA = _.last(elemA.split(length))
+
+    if results.elemIndexA != indexes.elemIndexA
+      results.elemA = null
+    if results.elemIndexB != indexes.elemIndexB
+      results.elemB = null
+
+    return results
+
   # We compute the follow according to the following rules:
   # 1. Insertions in deltaA become retained characters in the follow set
   # 2. Insertions in deltaB become inserted characters in the follow set
@@ -269,66 +346,33 @@ class Delta
     followOps = []
     indexA = indexB = 0 # Tracks character offset in the 'document'
     elemIndexA = elemIndexB = 0 # Tracks offset into the ops list
+
+    applyResults = (results) ->
+      indexA = results.indexA if results.indexA?
+      indexB = results.indexB if results.indexB?
+      elemIndexA = results.elemIndexA if results.elemIndexA?
+      elemIndexB = results.elemIndexB if results.elemIndexB?
+      deltaA.ops[elemIndexA] = results.elemA if results.elemA?
+      deltaB.ops[elemIndexB] = results.elemB if results.elemB?# and results.elemB != elemB
+      followOps.push(results.followOp) if results.followOp?
+
+    buildIndexes = ->
+      indexA: indexA
+      indexB: indexB
+      elemIndexA: elemIndexA
+      elemIndexB: elemIndexB
+
     while elemIndexA < deltaA.ops.length and elemIndexB < deltaB.ops.length
       elemA = deltaA.ops[elemIndexA]
       elemB = deltaB.ops[elemIndexB]
 
       if Delta.isInsert(elemA) and Delta.isInsert(elemB)
-        length = Math.min(elemA.getLength(), elemB.getLength())
-        if aIsRemote
-          followOps.push(new RetainOp(indexA, indexA + length))
-          indexA += length
-          if length == elemA.getLength()
-            elemIndexA++
-          else if length < elemA.getLength()
-            deltaA.ops[elemIndexA] = _.last(elemA.split(length))
-          else
-            throw new Error("Invalid elem length in follows")
-        else
-          followOps.push(_.first(elemB.split(length)))
-          indexB += length
-          if length == elemB.getLength()
-            elemIndexB++
-          else
-            deltaB.ops[elemIndexB] = _.last(elemB.split(length))
+        results = insertInsertCase(elemA, elemB, buildIndexes(), aIsRemote)
+        applyResults(results)
 
       else if Delta.isRetain(elemA) and Delta.isRetain(elemB)
-        if elemA.end < elemB.start
-          # Not a match, can't save. Throw away lower and adv.
-          indexA += elemA.getLength()
-          elemIndexA++
-        else if elemB.end < elemA.start
-          # Not a match, can't save. Throw away lower and adv.
-          indexB += elemB.getLength()
-          elemIndexB++
-        else
-          # A subrange or the entire range matches
-          if elemA.start < elemB.start
-            indexA += elemB.start - elemA.start
-            elemA = deltaA.ops[elemIndexA] = new RetainOp(elemB.start,
-              elemA.end, elemA.attributes)
-          else if elemB.start < elemA.start
-            indexB += elemA.start - elemB.start
-            elemB = deltaB.ops[elemIndexB] = new RetainOp(elemA.start,
-              elemB.end, elemB.attributes)
-          errMsg = "RetainOps must have same start length in follow set"
-          throw new Error(errMsg) if elemA.start != elemB.start
-          length = Math.min(elemA.end, elemB.end) - elemA.start
-          addedAttributes = elemA.addAttributes(elemB.attributes)
-          # Keep the retain
-          followOps.push(new RetainOp(indexA, indexA + length,
-            addedAttributes))
-          indexA += length
-          indexB += length
-          if (elemA.end == elemB.end)
-            elemIndexA++
-            elemIndexB++
-          else if (elemA.end < elemB.end)
-            elemIndexA++
-            deltaB.ops[elemIndexB] = _.last(elemB.split(length))
-          else
-            deltaA.ops[elemIndexA] = _.last(elemA.split(length))
-            elemIndexB++
+        results = retainRetainCase(elemA, elemB, buildIndexes())
+        applyResults(results)
 
       else if Delta.isInsert(elemA) and Delta.isRetain(elemB)
         followOps.push(new RetainOp(indexA, indexA + elemA.getLength()))
@@ -340,7 +384,7 @@ class Delta
         indexB += elemB.getLength()
         elemIndexB++
 
-    # Remaining loops account for different length ops, only inserts will be
+    # Remaining loops account for different length deltas, only inserts will be
     # accepted
     while elemIndexA < deltaA.ops.length
       elemA = deltaA.ops[elemIndexA]

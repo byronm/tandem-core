@@ -14,6 +14,8 @@
   dmp = new diff_match_patch();
 
   Delta = (function() {
+    var createReturnObj, insertInsertCase, retainRetainCase;
+
     Delta.getIdentity = function(length) {
       return new Delta(length, length, [new RetainOp(0, length)]);
     };
@@ -369,8 +371,94 @@
       return insertDelta;
     };
 
+    createReturnObj = function() {
+      return {
+        indexA: null,
+        indexB: null,
+        elemIndexA: null,
+        elemIndexB: null,
+        elemA: null,
+        elemB: null,
+        followOp: null
+      };
+    };
+
+    insertInsertCase = function(elemA, elemB, indexes, aIsRemote) {
+      var elemIndexA, elemIndexB, indexA, indexB, length, results;
+      results = createReturnObj();
+      indexA = indexes.indexA, indexB = indexes.indexB, elemIndexA = indexes.elemIndexA, elemIndexB = indexes.elemIndexB;
+      length = Math.min(elemA.getLength(), elemB.getLength());
+      if (aIsRemote) {
+        results.followOp = new RetainOp(indexA, indexA + length);
+        results.indexA = indexA + length;
+        if (length === elemA.getLength()) {
+          results.elemIndexA = elemIndexA + 1;
+        } else if (length < elemA.getLength()) {
+          results.elemA = _.last(elemA.split(length));
+        } else {
+          throw new Error("Invalid elem length in follows");
+        }
+      } else {
+        results.followOp = _.first(elemB.split(length));
+        results.indexB = indexB + length;
+        if (length === elemB.getLength()) {
+          results.elemIndexB = elemIndexB + 1;
+        } else {
+          results.elemB = _.last(elemB.split(length));
+        }
+      }
+      return results;
+    };
+
+    retainRetainCase = function(elemA, elemB, indexes) {
+      var addedAttributes, elemIndexA, elemIndexB, errMsg, indexA, indexB, length, results;
+      indexA = indexes.indexA, indexB = indexes.indexB, elemIndexA = indexes.elemIndexA, elemIndexB = indexes.elemIndexB;
+      results = _.extend(createReturnObj(), indexes);
+      if (elemA.end < elemB.start) {
+        results.indexA += elemA.getLength();
+        results.elemIndexA++;
+      } else if (elemB.end < elemA.start) {
+        results.indexB += elemB.getLength();
+        results.elemIndexB++;
+      } else {
+        if (elemA.start < elemB.start) {
+          results.indexA += elemB.start - elemA.start;
+          elemA = results.elemA = new RetainOp(elemB.start, elemA.end, elemA.attributes);
+        } else if (elemB.start < elemA.start) {
+          results.indexB += elemA.start - elemB.start;
+          elemB = results.elemB = new RetainOp(elemA.start, elemB.end, elemB.attributes);
+        }
+        errMsg = "RetainOps must have same start length in follow set";
+        if (elemA.start !== elemB.start) {
+          throw new Error(errMsg);
+        }
+        length = Math.min(elemA.end, elemB.end) - elemA.start;
+        addedAttributes = elemA.addAttributes(elemB.attributes);
+        results.followOp = new RetainOp(results.indexA, results.indexA + length, addedAttributes);
+        results.indexA += length;
+        results.indexB += length;
+        if (elemA.end === elemB.end) {
+          results.elemIndexA++;
+          results.elemIndexB++;
+        } else if (elemA.end < elemB.end) {
+          results.elemIndexA++;
+          results.elemB = _.last(elemB.split(length));
+        } else {
+          results.elemIndexB++;
+          results.elemA = _.last(elemA.split(length));
+        }
+      }
+      if (results.elemIndexA !== indexes.elemIndexA) {
+        results.elemA = null;
+      }
+      if (results.elemIndexB !== indexes.elemIndexB) {
+        results.elemB = null;
+      }
+      return results;
+    };
+
     Delta.prototype.follows = function(deltaA, aIsRemote) {
-      var addedAttributes, deltaB, elem, elemA, elemB, elemIndexA, elemIndexB, errMsg, follow, followEndLength, followOps, followStartLength, indexA, indexB, length, _i, _len;
+      var applyResults, buildIndexes, deltaB, elem, elemA, elemB, elemIndexA, elemIndexB, errMsg, follow, followEndLength, followOps, followStartLength, indexA, indexB, results, _i, _len;
       if (aIsRemote == null) {
         aIsRemote = false;
       }
@@ -385,65 +473,46 @@
       followOps = [];
       indexA = indexB = 0;
       elemIndexA = elemIndexB = 0;
+      applyResults = function(results) {
+        if (results.indexA != null) {
+          indexA = results.indexA;
+        }
+        if (results.indexB != null) {
+          indexB = results.indexB;
+        }
+        if (results.elemIndexA != null) {
+          elemIndexA = results.elemIndexA;
+        }
+        if (results.elemIndexB != null) {
+          elemIndexB = results.elemIndexB;
+        }
+        if (results.elemA != null) {
+          deltaA.ops[elemIndexA] = results.elemA;
+        }
+        if (results.elemB != null) {
+          deltaB.ops[elemIndexB] = results.elemB;
+        }
+        if (results.followOp != null) {
+          return followOps.push(results.followOp);
+        }
+      };
+      buildIndexes = function() {
+        return {
+          indexA: indexA,
+          indexB: indexB,
+          elemIndexA: elemIndexA,
+          elemIndexB: elemIndexB
+        };
+      };
       while (elemIndexA < deltaA.ops.length && elemIndexB < deltaB.ops.length) {
         elemA = deltaA.ops[elemIndexA];
         elemB = deltaB.ops[elemIndexB];
         if (Delta.isInsert(elemA) && Delta.isInsert(elemB)) {
-          length = Math.min(elemA.getLength(), elemB.getLength());
-          if (aIsRemote) {
-            followOps.push(new RetainOp(indexA, indexA + length));
-            indexA += length;
-            if (length === elemA.getLength()) {
-              elemIndexA++;
-            } else if (length < elemA.getLength()) {
-              deltaA.ops[elemIndexA] = _.last(elemA.split(length));
-            } else {
-              throw new Error("Invalid elem length in follows");
-            }
-          } else {
-            followOps.push(_.first(elemB.split(length)));
-            indexB += length;
-            if (length === elemB.getLength()) {
-              elemIndexB++;
-            } else {
-              deltaB.ops[elemIndexB] = _.last(elemB.split(length));
-            }
-          }
+          results = insertInsertCase(elemA, elemB, buildIndexes(), aIsRemote);
+          applyResults(results);
         } else if (Delta.isRetain(elemA) && Delta.isRetain(elemB)) {
-          if (elemA.end < elemB.start) {
-            indexA += elemA.getLength();
-            elemIndexA++;
-          } else if (elemB.end < elemA.start) {
-            indexB += elemB.getLength();
-            elemIndexB++;
-          } else {
-            if (elemA.start < elemB.start) {
-              indexA += elemB.start - elemA.start;
-              elemA = deltaA.ops[elemIndexA] = new RetainOp(elemB.start, elemA.end, elemA.attributes);
-            } else if (elemB.start < elemA.start) {
-              indexB += elemA.start - elemB.start;
-              elemB = deltaB.ops[elemIndexB] = new RetainOp(elemA.start, elemB.end, elemB.attributes);
-            }
-            errMsg = "RetainOps must have same start length in follow set";
-            if (elemA.start !== elemB.start) {
-              throw new Error(errMsg);
-            }
-            length = Math.min(elemA.end, elemB.end) - elemA.start;
-            addedAttributes = elemA.addAttributes(elemB.attributes);
-            followOps.push(new RetainOp(indexA, indexA + length, addedAttributes));
-            indexA += length;
-            indexB += length;
-            if (elemA.end === elemB.end) {
-              elemIndexA++;
-              elemIndexB++;
-            } else if (elemA.end < elemB.end) {
-              elemIndexA++;
-              deltaB.ops[elemIndexB] = _.last(elemB.split(length));
-            } else {
-              deltaA.ops[elemIndexA] = _.last(elemA.split(length));
-              elemIndexB++;
-            }
-          }
+          results = retainRetainCase(elemA, elemB, buildIndexes());
+          applyResults(results);
         } else if (Delta.isInsert(elemA) && Delta.isRetain(elemB)) {
           followOps.push(new RetainOp(indexA, indexA + elemA.getLength()));
           indexA += elemA.getLength();
