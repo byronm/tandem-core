@@ -253,7 +253,7 @@ class Delta
       insertDelta = new Delta(0, 0, [])
     return insertDelta
 
-  insertInsertCase = (elemA, elemB, indexes, aIsRemote) ->
+  _insertInsertCase = (elemA, elemB, indexes, aIsRemote) ->
     results = _.extend({}, indexes)
     length = Math.min(elemA.getLength(), elemB.getLength())
     if aIsRemote
@@ -274,7 +274,7 @@ class Delta
         results.elemB = _.last(elemB.split(length))
     return results
 
-  retainRetainCase = (elemA, elemB, indexes) ->
+  _retainRetainCase = (elemA, elemB, indexes) ->
     {indexA, indexB, elemIndexA, elemIndexB} = indexes
     results = _.extend({}, indexes)
     if elemA.end < elemB.start
@@ -337,7 +337,7 @@ class Delta
     indexA = indexB = 0 # Tracks character offset in the 'document'
     elemIndexA = elemIndexB = 0 # Tracks offset into the ops list
 
-    applyResults = (results) ->
+    _applyResults = (results) ->
       indexA = results.indexA if results.indexA?
       indexB = results.indexB if results.indexB?
       elemIndexA = results.elemIndexA if results.elemIndexA?
@@ -346,7 +346,7 @@ class Delta
       deltaB.ops[elemIndexB] = results.elemB if results.elemB?
       followOps.push(results.followOp) if results.followOp?
 
-    buildIndexes = ->
+    _buildIndexes = ->
       indexA: indexA
       indexB: indexB
       elemIndexA: elemIndexA
@@ -357,12 +357,12 @@ class Delta
       elemB = deltaB.ops[elemIndexB]
 
       if Delta.isInsert(elemA) and Delta.isInsert(elemB)
-        results = insertInsertCase(elemA, elemB, buildIndexes(), aIsRemote)
-        applyResults(results)
+        results = _insertInsertCase(elemA, elemB, _buildIndexes(), aIsRemote)
+        _applyResults(results)
 
       else if Delta.isRetain(elemA) and Delta.isRetain(elemB)
-        results = retainRetainCase(elemA, elemB, buildIndexes())
-        applyResults(results)
+        results = _retainRetainCase(elemA, elemB, _buildIndexes())
+        _applyResults(results)
 
       else if Delta.isInsert(elemA) and Delta.isRetain(elemB)
         followOps.push(new RetainOp(indexA, indexA + elemA.getLength()))
