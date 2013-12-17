@@ -253,40 +253,30 @@ class Delta
       insertDelta = new Delta(0, 0, [])
     return insertDelta
 
-  createReturnObj = ->
-    indexA: null
-    indexB: null
-    elemIndexA: null
-    elemIndexB: null
-    elemA: null
-    elemB: null
-    followOp: null
-
   insertInsertCase = (elemA, elemB, indexes, aIsRemote) ->
-    results = createReturnObj()
-    {indexA, indexB, elemIndexA, elemIndexB} = indexes
+    results = _.extend({}, indexes)
     length = Math.min(elemA.getLength(), elemB.getLength())
     if aIsRemote
-      results.followOp = new RetainOp(indexA, indexA + length)
-      results.indexA = indexA + length
+      results.followOp = new RetainOp(results.indexA, results.indexA + length)
+      results.indexA += length
       if length == elemA.getLength()
-        results.elemIndexA = elemIndexA + 1
+        results.elemIndexA++
       else if length < elemA.getLength()
         results.elemA = _.last(elemA.split(length))
       else
         throw new Error("Invalid elem length in follows")
     else
       results.followOp = _.first(elemB.split(length))
-      results.indexB = indexB + length
+      results.indexB += length
       if length == elemB.getLength()
-        results.elemIndexB = elemIndexB + 1
+        results.elemIndexB++
       else
         results.elemB = _.last(elemB.split(length))
     return results
 
   retainRetainCase = (elemA, elemB, indexes) ->
     {indexA, indexB, elemIndexA, elemIndexB} = indexes
-    results = _.extend(createReturnObj(), indexes)
+    results = _.extend({}, indexes)
     if elemA.end < elemB.start
       # The retains don't match, so throw away the lower and advance.
       results.indexA += elemA.getLength()
@@ -310,7 +300,8 @@ class Delta
       length = Math.min(elemA.end, elemB.end) - elemA.start
       addedAttributes = elemA.addAttributes(elemB.attributes)
       # Keep the retain
-      results.followOp = new RetainOp(results.indexA, results.indexA + length, addedAttributes)
+      results.followOp = new RetainOp(results.indexA, results.indexA + length,
+        addedAttributes)
       results.indexA += length
       results.indexB += length
       if (elemA.end == elemB.end)
@@ -353,7 +344,7 @@ class Delta
       elemIndexA = results.elemIndexA if results.elemIndexA?
       elemIndexB = results.elemIndexB if results.elemIndexB?
       deltaA.ops[elemIndexA] = results.elemA if results.elemA?
-      deltaB.ops[elemIndexB] = results.elemB if results.elemB?# and results.elemB != elemB
+      deltaB.ops[elemIndexB] = results.elemB if results.elemB?
       followOps.push(results.followOp) if results.followOp?
 
     buildIndexes = ->

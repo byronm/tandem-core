@@ -14,7 +14,7 @@
   dmp = new diff_match_patch();
 
   Delta = (function() {
-    var createReturnObj, insertInsertCase, retainRetainCase;
+    var insertInsertCase, retainRetainCase;
 
     Delta.getIdentity = function(length) {
       return new Delta(length, length, [new RetainOp(0, length)]);
@@ -371,28 +371,15 @@
       return insertDelta;
     };
 
-    createReturnObj = function() {
-      return {
-        indexA: null,
-        indexB: null,
-        elemIndexA: null,
-        elemIndexB: null,
-        elemA: null,
-        elemB: null,
-        followOp: null
-      };
-    };
-
     insertInsertCase = function(elemA, elemB, indexes, aIsRemote) {
-      var elemIndexA, elemIndexB, indexA, indexB, length, results;
-      results = createReturnObj();
-      indexA = indexes.indexA, indexB = indexes.indexB, elemIndexA = indexes.elemIndexA, elemIndexB = indexes.elemIndexB;
+      var length, results;
+      results = _.extend({}, indexes);
       length = Math.min(elemA.getLength(), elemB.getLength());
       if (aIsRemote) {
-        results.followOp = new RetainOp(indexA, indexA + length);
-        results.indexA = indexA + length;
+        results.followOp = new RetainOp(results.indexA, results.indexA + length);
+        results.indexA += length;
         if (length === elemA.getLength()) {
-          results.elemIndexA = elemIndexA + 1;
+          results.elemIndexA++;
         } else if (length < elemA.getLength()) {
           results.elemA = _.last(elemA.split(length));
         } else {
@@ -400,9 +387,9 @@
         }
       } else {
         results.followOp = _.first(elemB.split(length));
-        results.indexB = indexB + length;
+        results.indexB += length;
         if (length === elemB.getLength()) {
-          results.elemIndexB = elemIndexB + 1;
+          results.elemIndexB++;
         } else {
           results.elemB = _.last(elemB.split(length));
         }
@@ -413,7 +400,7 @@
     retainRetainCase = function(elemA, elemB, indexes) {
       var addedAttributes, elemIndexA, elemIndexB, errMsg, indexA, indexB, length, results;
       indexA = indexes.indexA, indexB = indexes.indexB, elemIndexA = indexes.elemIndexA, elemIndexB = indexes.elemIndexB;
-      results = _.extend(createReturnObj(), indexes);
+      results = _.extend({}, indexes);
       if (elemA.end < elemB.start) {
         results.indexA += elemA.getLength();
         results.elemIndexA++;
