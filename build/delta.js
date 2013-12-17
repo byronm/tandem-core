@@ -449,13 +449,12 @@
       if (aIsRemote == null) {
         aIsRemote = false;
       }
-      deltaB = this;
-      errMsg = "Follows called when deltaA is not a Delta, type: ";
       if (!Delta.isDelta(deltaA)) {
+        errMsg = "Follows called when deltaA is not a Delta, type: ";
         throw new Error(errMsg + typeof deltaA);
       }
       deltaA = new Delta(deltaA.startLength, deltaA.endLength, deltaA.ops);
-      deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops);
+      deltaB = new Delta(this.startLength, this.endLength, this.ops);
       followStartLength = deltaA.endLength;
       followOps = [];
       indexA = indexB = 0;

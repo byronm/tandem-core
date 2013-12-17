@@ -327,12 +327,12 @@ class Delta
   # 3. Characters retained in deltaA and deltaB become retained characters in
   #    the follow set
   follows: (deltaA, aIsRemote = false) ->
-    deltaB = this
-    errMsg = "Follows called when deltaA is not a Delta, type: "
-    throw new Error(errMsg + typeof deltaA) unless Delta.isDelta(deltaA)
+    if not Delta.isDelta(deltaA)
+      errMsg = "Follows called when deltaA is not a Delta, type: "
+      throw new Error(errMsg + typeof deltaA)
 
     deltaA = new Delta(deltaA.startLength, deltaA.endLength, deltaA.ops)
-    deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops)
+    deltaB = new Delta(@startLength, @endLength, @ops)
     followStartLength = deltaA.endLength
     followOps = []
     indexA = indexB = 0 # Tracks character offset in the 'document'
