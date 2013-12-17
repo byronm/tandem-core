@@ -393,8 +393,7 @@ class Delta
     followEndLength = _.reduce(followOps, (followEndLength, op) ->
       return followEndLength + op.getLength()
     , 0)
-    follow = new Delta(followStartLength, followEndLength, followOps)
-    return follow
+    return new Delta(followStartLength, followEndLength, followOps)
 
   getOpsAt: (index, length) ->
     changes = []
