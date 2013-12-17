@@ -333,7 +333,6 @@ class Delta
 
     deltaA = new Delta(deltaA.startLength, deltaA.endLength, deltaA.ops)
     deltaB = new Delta(@startLength, @endLength, @ops)
-    followStartLength = deltaA.endLength
     followOps = []
     indexA = indexB = 0 # Tracks character offset in the 'document'
     elemIndexA = elemIndexB = 0 # Tracks offset into the ops list
@@ -390,9 +389,10 @@ class Delta
       indexB += elemB.getLength()
       elemIndexB++
 
-    followEndLength = 0
-    for elem in followOps
-      followEndLength += elem.getLength()
+    followStartLength = deltaA.endLength
+    followEndLength = _.reduce(followOps, (followEndLength, op) ->
+      return followEndLength + op.getLength()
+    , 0)
     follow = new Delta(followStartLength, followEndLength, followOps)
     return follow
 

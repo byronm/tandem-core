@@ -445,7 +445,7 @@
     };
 
     Delta.prototype.follows = function(deltaA, aIsRemote) {
-      var applyResults, buildIndexes, deltaB, elem, elemA, elemB, elemIndexA, elemIndexB, errMsg, follow, followEndLength, followOps, followStartLength, indexA, indexB, results, _i, _len;
+      var applyResults, buildIndexes, deltaB, elemA, elemB, elemIndexA, elemIndexB, errMsg, follow, followEndLength, followOps, followStartLength, indexA, indexB, results;
       if (aIsRemote == null) {
         aIsRemote = false;
       }
@@ -455,7 +455,6 @@
       }
       deltaA = new Delta(deltaA.startLength, deltaA.endLength, deltaA.ops);
       deltaB = new Delta(this.startLength, this.endLength, this.ops);
-      followStartLength = deltaA.endLength;
       followOps = [];
       indexA = indexB = 0;
       elemIndexA = elemIndexB = 0;
@@ -525,11 +524,10 @@
         indexB += elemB.getLength();
         elemIndexB++;
       }
-      followEndLength = 0;
-      for (_i = 0, _len = followOps.length; _i < _len; _i++) {
-        elem = followOps[_i];
-        followEndLength += elem.getLength();
-      }
+      followStartLength = deltaA.endLength;
+      followEndLength = _.reduce(followOps, function(followEndLength, op) {
+        return followEndLength + op.getLength();
+      }, 0);
       follow = new Delta(followStartLength, followEndLength, followOps);
       return follow;
     };
