@@ -10,28 +10,25 @@
   RetainOp = require('./retain');
 
   DeltaGenerator = (function() {
-    var formatBooleanAttribute, formatNonBooleanAttribute, limitScope, splitOpInThree,
+    var _formatBooleanAttribute, _formatNonBooleanAttribute, _limitScope, _splitOpInThree,
       _this = this;
 
     function DeltaGenerator() {}
 
-    DeltaGenerator.constants = {
-      attributes: {
-        'bold': [true, false],
-        'italic': [true, false],
-        'strike': [true, false],
-        'font-name': ['monospace', 'serif'],
-        'fore-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow'],
-        'font-size': ['huge', 'large', 'small'],
-        'back-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
-      },
-      default_attribute_value: {
-        'back-color': 'white',
-        'fore-color': 'black',
-        'font-name': 'san-serif',
-        'font-size': 'normal'
-      },
-      alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  "
+    DeltaGenerator.initDomain = function(domain) {
+      this.domain = domain;
+      if (this.domain.alphabet == null) {
+        throw new Error("Must specify alphabet.");
+      }
+      if (this.domain.booleanAttributes == null) {
+        throw new Error("Must specify boolean attributes.");
+      }
+      if (this.domain.nonBooleanAttributes == null) {
+        throw new Error("Must specify nonboolean attributes.");
+      }
+      if (this.domain.defaultAttributeValue == null) {
+        throw new Error("Must specify default attribute values.");
+      }
     };
 
     DeltaGenerator.getRandomString = function(alphabet, length) {
@@ -123,7 +120,7 @@
       }, 0);
     };
 
-    splitOpInThree = function(elem, splitAt, length, reference) {
+    _splitOpInThree = function(elem, splitAt, length, reference) {
       var cur, curStr, head, headStr, marker, newCur, op, origOps, tail, tailStr, _i, _len;
       if (Delta.isInsert(elem)) {
         headStr = elem.value.substring(0, splitAt);
@@ -170,7 +167,7 @@
       return [head, cur, tail];
     };
 
-    limitScope = function(op, tail, attr, referenceOps) {
+    _limitScope = function(op, tail, attr, referenceOps) {
       var length, refOp, val, _i, _len, _results;
       length = 0;
       val = referenceOps[0].attributes[attr];
@@ -188,7 +185,7 @@
       return _results;
     };
 
-    formatBooleanAttribute = function(op, tail, attr, reference) {
+    _formatBooleanAttribute = function(op, tail, attr, reference) {
       var referenceOps;
       if (Delta.isInsert(op)) {
         if (op.attributes[attr] != null) {
@@ -210,7 +207,7 @@
             throw new Error("Formatting a retain that does not refer to an insert.");
           }
           if (referenceOps.length > 0) {
-            limitScope(op, tail, attr, referenceOps);
+            _limitScope(op, tail, attr, referenceOps);
             if (referenceOps[0].attributes[attr] != null) {
               if (!referenceOps[0].attributes[attr]) {
                 throw new Error("Boolean attribute on reference delta should only be true!");
@@ -224,13 +221,13 @@
       }
     };
 
-    formatNonBooleanAttribute = function(op, tail, attr, reference) {
+    _formatNonBooleanAttribute = function(op, tail, attr, reference) {
       var getNewAttrVal, referenceOps;
       getNewAttrVal = function(prevVal) {
         if (prevVal != null) {
-          return _.first(_.shuffle(_.without(DeltaGenerator.constants.attributes[attr], prevVal)));
+          return _.first(_.shuffle(_.without(DeltaGenerator.domain.nonBooleanAttributes[attr], prevVal)));
         } else {
-          return _.first(_.shuffle(_.without(DeltaGenerator.constants.attributes[attr], DeltaGenerator.constants.default_attribute_value[attr])));
+          return _.first(_.shuffle(_.without(DeltaGenerator.domain.nonBooleanAttributes[attr], DeltaGenerator.domain.defaultAttributeValue[attr])));
         }
       };
       if (Delta.isInsert(op)) {
@@ -246,7 +243,7 @@
           throw new Error("Formatting a retain that does not refer to an insert.");
         }
         if (referenceOps.length > 0) {
-          limitScope(op, tail, attr, referenceOps);
+          _limitScope(op, tail, attr, referenceOps);
           if ((op.attributes[attr] != null) && Math.random() < 0.5) {
             return delete op.attributes[attr];
           } else {
@@ -267,28 +264,18 @@
         if (numToFormat > 0 && reachedFormatPoint) {
           curFormat = Math.min(numToFormat, op.getLength() - (formatPoint - charIndex));
           numToFormat -= curFormat;
-          _ref1 = splitOpInThree(op, formatPoint - charIndex, curFormat, reference), head = _ref1[0], cur = _ref1[1], tail = _ref1[2];
+          _ref1 = _splitOpInThree(op, formatPoint - charIndex, curFormat, reference), head = _ref1[0], cur = _ref1[1], tail = _ref1[2];
           ops.push(head);
           ops.push(cur);
           ops.push(tail);
           for (_j = 0, _len1 = attrs.length; _j < _len1; _j++) {
             attr = attrs[_j];
-            switch (attr) {
-              case 'bold':
-              case 'italic':
-              case 'underline':
-              case 'strike':
-              case 'link':
-                formatBooleanAttribute(cur, tail, attr, reference);
-                break;
-              case 'font-size':
-              case 'font-name':
-              case 'fore-color':
-              case 'back-color':
-                formatNonBooleanAttribute(cur, tail, attr, reference);
-                break;
-              default:
-                throw new Error("Received unknown attribute: " + attr);
+            if (_.has(this.domain.booleanAttributes, attr)) {
+              _formatBooleanAttribute(cur, tail, attr, reference);
+            } else if (_.has(this.domain.nonBooleanAttributes, attr)) {
+              _formatNonBooleanAttribute(cur, tail, attr, reference);
+            } else {
+              throw new Error("Received unknown attribute: " + attr);
             }
           }
           formatPoint += curFormat;
@@ -311,7 +298,7 @@
       rand = Math.random();
       if (rand < 0.5) {
         opLength = this.getRandomLength();
-        this.insertAt(newDelta, opIndex, this.getRandomString(this.constants.alphabet, opLength));
+        this.insertAt(newDelta, opIndex, this.getRandomString(this.domain.alphabet, opLength));
       } else if (rand < 0.75) {
         if (referenceDelta.endLength <= 1) {
           return newDelta;
@@ -320,7 +307,7 @@
         opLength = _.random(1, finalIndex - opIndex);
         this.deleteAt(newDelta, opIndex, opLength);
       } else {
-        shuffled_attrs = _.shuffle(_.keys(this.constants.attributes));
+        shuffled_attrs = _.shuffle(_.keys(this.domain.booleanAttributes).concat(_.keys(this.domain.nonBooleanAttributes)));
         numAttrs = _.random(1, shuffled_attrs.length);
         attrs = shuffled_attrs.slice(0, numAttrs);
         opLength = _.random(1, finalIndex - opIndex);

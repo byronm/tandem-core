@@ -4,24 +4,15 @@ InsertOp   = require('./insert')
 RetainOp   = require('./retain')
 
 class DeltaGenerator
-  @constants =
-    attributes:
-      'bold'      : [true, false],
-      'italic'    : [true, false],
-      # 'link'    : [true, false],
-      'strike'    : [true, false],
-      'font-name' : ['monospace', 'serif'],
-      'fore-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
-      'font-size' : ['huge', 'large', 'small'],
-      'back-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
-
-    default_attribute_value:
-      'back-color' : 'white',
-      'fore-color' : 'black',
-      'font-name'  : 'san-serif',
-      'font-size'  : 'normal'
-
-    alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  "
+  @initDomain = (@domain) ->
+    unless @domain.alphabet?
+      throw new Error("Must specify alphabet.")
+    unless @domain.booleanAttributes?
+      throw new Error("Must specify boolean attributes.")
+    unless @domain.nonBooleanAttributes?
+      throw new Error("Must specify nonboolean attributes.")
+    unless @domain.defaultAttributeValue?
+      throw new Error("Must specify default attribute values.")
 
   @getRandomString = (alphabet, length) ->
     return _.map([0..(length - 1)], ->
@@ -85,7 +76,7 @@ class DeltaGenerator
       return length + op.getLength()
     , 0)
 
-  splitOpInThree = (elem, splitAt, length, reference) ->
+  _splitOpInThree = (elem, splitAt, length, reference) ->
     if Delta.isInsert(elem)
       headStr = elem.value.substring(0, splitAt)
       head = new InsertOp(headStr, _.clone(elem.attributes))
@@ -122,7 +113,7 @@ class DeltaGenerator
           throw new Error("Got retainOp in reference delta!")
     return [head, cur, tail]
 
-  limitScope = (op, tail, attr, referenceOps) ->
+  _limitScope = (op, tail, attr, referenceOps) ->
     length = 0
     val = referenceOps[0].attributes[attr]
     for refOp in referenceOps
@@ -133,7 +124,7 @@ class DeltaGenerator
       else
         length += refOp.getLength()
 
-  formatBooleanAttribute = (op, tail, attr, reference) ->
+  _formatBooleanAttribute = (op, tail, attr, reference) ->
     if Delta.isInsert(op)
       if op.attributes[attr]?
         delete op.attributes[attr]
@@ -147,19 +138,19 @@ class DeltaGenerator
         referenceOps = reference.getOpsAt(op.start, op.getLength())
         throw new Error("Formatting a retain that does not refer to an insert.") unless _.every(referenceOps, (op) -> Delta.isInsert(op))
         if referenceOps.length > 0
-          limitScope(op, tail, attr, referenceOps)
+          _limitScope(op, tail, attr, referenceOps)
           if referenceOps[0].attributes[attr]?
             throw new Error("Boolean attribute on reference delta should only be true!") unless referenceOps[0].attributes[attr]
             op.attributes[attr] = null
           else
             op.attributes[attr] = true
 
-  formatNonBooleanAttribute = (op, tail, attr, reference) =>
+  _formatNonBooleanAttribute = (op, tail, attr, reference) =>
     getNewAttrVal = (prevVal) =>
       if prevVal?
-        _.first(_.shuffle(_.without(@constants.attributes[attr], prevVal)))
+        _.first(_.shuffle(_.without(@domain.nonBooleanAttributes[attr], prevVal)))
       else
-        _.first(_.shuffle(_.without(@constants.attributes[attr], @constants.default_attribute_value[attr])))
+        _.first(_.shuffle(_.without(@domain.nonBooleanAttributes[attr], @domain.defaultAttributeValue[attr])))
 
     if Delta.isInsert(op)
       op.attributes[attr] = getNewAttrVal(attr, op.attributes[attr])
@@ -168,7 +159,7 @@ class DeltaGenerator
       referenceOps = reference.getOpsAt(op.start, op.getLength())
       throw new Error("Formatting a retain that does not refer to an insert.") unless _.every(referenceOps, (op) -> Delta.isInsert(op))
       if referenceOps.length > 0
-        limitScope(op, tail, attr, referenceOps)
+        _limitScope(op, tail, attr, referenceOps)
         if op.attributes[attr]? and Math.random() < 0.5
             delete op.attributes[attr]
         else
@@ -185,19 +176,18 @@ class DeltaGenerator
           op.getLength() - (formatPoint - charIndex))
         numToFormat -= curFormat
         # Need a reference to cur, the subpart of the op we want to format
-        [head, cur, tail] = splitOpInThree(op, formatPoint - charIndex,
+        [head, cur, tail] = _splitOpInThree(op, formatPoint - charIndex,
           curFormat, reference)
         ops.push(head)
         ops.push(cur)
         ops.push(tail)
         for attr in attrs
-          switch attr
-            when 'bold', 'italic', 'underline', 'strike', 'link'
-              formatBooleanAttribute(cur, tail, attr, reference)
-            when 'font-size', 'font-name', 'fore-color', 'back-color'
-              formatNonBooleanAttribute(cur, tail, attr, reference)
-            else
-              throw new Error("Received unknown attribute: #{attr}")
+          if _.has(@domain.booleanAttributes, attr)
+            _formatBooleanAttribute(cur, tail, attr, reference)
+          else if _.has(@domain.nonBooleanAttributes, attr)
+            _formatNonBooleanAttribute(cur, tail, attr, reference)
+          else
+            throw new Error("Received unknown attribute: #{attr}")
         formatPoint += curFormat
       else
         ops.push(op)
@@ -217,7 +207,7 @@ class DeltaGenerator
       opLength = @getRandomLength()
       this.insertAt(newDelta,
                     opIndex,
-                    @getRandomString(@constants.alphabet, opLength))
+                    @getRandomString(@domain.alphabet, opLength))
     else if rand < 0.75
       return newDelta if referenceDelta.endLength <= 1
       # Scribe doesn't like us deleting the final \n
@@ -225,7 +215,9 @@ class DeltaGenerator
       opLength = _.random(1, finalIndex - opIndex)
       this.deleteAt(newDelta, opIndex, opLength)
     else
-      shuffled_attrs = _.shuffle(_.keys(@constants.attributes))
+      shuffled_attrs = _.shuffle(
+        _.keys(@domain.booleanAttributes).concat(
+          _.keys(@domain.nonBooleanAttributes)))
       numAttrs = _.random(1, shuffled_attrs.length)
       attrs = shuffled_attrs.slice(0, numAttrs)
       opLength = _.random(1, finalIndex - opIndex)
