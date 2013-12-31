@@ -7,7 +7,7 @@ RetainOp = Tandem.RetainOp
 DeltaGen = Tandem.DeltaGen
 
 ##############################
-# Fuzzer to test compose, follows, and applyDeltaToText.
+# Fuzzer to test compose, transform, and applyDeltaToText.
 # This test simulates two clients each making 10000 deltas on the document.
 # On each iteration, each client applies their own delta, and the others
 # delta, to their document. After doing so, we assert that the document is in
@@ -20,7 +20,7 @@ DeltaGen = Tandem.DeltaGen
 ##############################
 describe('Fuzzers', ->
   ##############################
-  # Fuzz lots of changes being made to the doc (compose, follows, applyDeltaToText
+  # Fuzz lots of changes being made to the doc (compose, transform, applyDeltaToText
   # all get fuzzed here)
   ##############################
   it('should pass all standard fuzzing', ->
@@ -32,8 +32,8 @@ describe('Fuzzers', ->
       deltaB = DeltaGen.getRandomDelta(xDelta)
       # 50/50 as to which client gets priority
       isRemote = if Math.random() > 0.5 then true else false
-      deltaBPrime = deltaB.follows(deltaA, isRemote)
-      deltaAPrime = deltaA.follows(deltaB, !isRemote)
+      deltaBPrime = deltaB.transform(deltaA, isRemote)
+      deltaAPrime = deltaA.transform(deltaB, !isRemote)
       deltaAFinal = deltaA.compose(deltaBPrime)
       deltaBFinal = deltaB.compose(deltaAPrime)
       xA = deltaAFinal.applyToText(x)
