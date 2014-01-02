@@ -73,7 +73,7 @@ describe('Fuzzers', ->
   ##############################
   # Fuzz decompose
   ##############################
-  it('should pass all decompose fuzzing', ->
+  it.only('should pass all decompose fuzzing', ->
     pass = _.all([1..1000], (i) ->
       numInsertions = _.random(1, 40)
       insertions = DeltaGen.getRandomString(domain.alphabet, numInsertions)
@@ -81,9 +81,10 @@ describe('Fuzzers', ->
       for j in [0...10]
         indexToFormat = _.random(0, deltaA.endLength - 1)
         numToFormat = _.random(0, deltaA.endLength - indexToFormat - 1)
-        attributes = ["bold", "italic", "size"]
         # Pick a random number of random attributes
-        attributes.sort(-> return 0.5 - Math.random())
+        attributes = _.keys(domain.booleanAttributes).concat(
+          _.keys(domain.nonBooleanAttributes))
+        attributes = _.sortBy(attributes, -> return 0.5 - Math.random())
         numAttrs = Math.floor(Math.random() * (attributes.length + 1))
         attrs = attributes.slice(0, numAttrs)
         numToFormat = Math.floor(Math.random() * (deltaA.endLength - indexToFormat))
