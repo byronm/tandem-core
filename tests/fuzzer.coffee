@@ -76,7 +76,7 @@ describe('Fuzzers', ->
   it('should pass all decompose fuzzing', ->
     pass = _.all([1..1000], (i) ->
       numInsertions = _.random(1, 40)
-      insertions = DeltaGen.getRandomString(numInsertions)
+      insertions = DeltaGen.getRandomString(domain.alphabet, numInsertions)
       deltaA = new Delta(0, insertions.length, [new InsertOp(insertions)])
       for j in [0...10]
         indexToFormat = _.random(0, deltaA.endLength - 1)
