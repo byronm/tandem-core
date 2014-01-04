@@ -27,7 +27,8 @@ domain =
     'font-size'  : 'normal'
 
 
-DeltaGen.initDomain(domain)
+DeltaGen.setDomain(domain)
+DeltaGen = DeltaGen.getUtils()
 
 ##############################
 # Fuzzer to test compose, transform, and applyDeltaToText.
@@ -73,7 +74,7 @@ describe('Fuzzers', ->
   ##############################
   # Fuzz decompose
   ##############################
-  it.only('should pass all decompose fuzzing', ->
+  it('should pass all decompose fuzzing', ->
     pass = _.all([1..1000], (i) ->
       numInsertions = _.random(1, 40)
       insertions = DeltaGen.getRandomString(domain.alphabet, numInsertions)
