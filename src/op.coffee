@@ -43,4 +43,5 @@ class Op
   printAttributes: ->
     return JSON.stringify(@attributes)
 
+
 module.exports = Op

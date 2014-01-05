@@ -13,7 +13,8 @@ class InsertOp extends Op
     return @value.length
 
   isEqual: (other) ->
-    return other? and @value == other.value and _.isEqual(@attributes, other.attributes)
+    return other? and @value == other.value and
+      _.isEqual(@attributes, other.attributes)
 
   join: (other) ->
     if _.isEqual(@attributes, other.attributes)
