@@ -10,11 +10,21 @@ setDomain = (domain) ->
 
 getUtils = (domain) ->
   domain = domain or _cachedDomain
-  throw new Error("Must provide DeltaGenerator with a domain.") unless domain?
+  unless domain?
+    throw new Error("Must provide DeltaGenerator with a domain.")
+  unless domain.alphabet?
+    throw new Error("Domain must define alphabet.")
+  unless domain.booleanAttributes?
+    throw new Error("Domain must define booleanAttributes.")
+  unless domain.nonBooleanAttributes?
+    throw new Error("Domain must define nonBooleanAttributes.")
+  unless domain.defaultAttributeValue?
+    throw new Error("Domain must define defaultAttributeValue.")
+
   return {
     getRandomString: (alphabet, length) ->
       return _.map([0..(length - 1)], ->
-        return alphabet[_.random(0, alphabet.length - 1)]
+        return domain.alphabet[_.random(0, domain.alphabet.length - 1)]
       ).join('')
 
     getRandomLength: ->

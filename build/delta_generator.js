@@ -20,6 +20,18 @@
     if (domain == null) {
       throw new Error("Must provide DeltaGenerator with a domain.");
     }
+    if (domain.alphabet == null) {
+      throw new Error("Domain must define alphabet.");
+    }
+    if (domain.booleanAttributes == null) {
+      throw new Error("Domain must define booleanAttributes.");
+    }
+    if (domain.nonBooleanAttributes == null) {
+      throw new Error("Domain must define nonBooleanAttributes.");
+    }
+    if (domain.defaultAttributeValue == null) {
+      throw new Error("Domain must define defaultAttributeValue.");
+    }
     return {
       getRandomString: function(alphabet, length) {
         var _i, _ref, _results;
@@ -28,7 +40,7 @@
           for (var _i = 0, _ref = length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; 0 <= _ref ? _i++ : _i--){ _results.push(_i); }
           return _results;
         }).apply(this), function() {
-          return alphabet[_.random(0, alphabet.length - 1)];
+          return domain.alphabet[_.random(0, domain.alphabet.length - 1)];
         }).join('');
       },
       getRandomLength: function() {
