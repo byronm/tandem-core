@@ -28,7 +28,9 @@ class Op
         if Op.isInsert(this) and value == null
           delete resolvedAttrs[key]
         else if typeof value != 'undefined'
-          if typeof resolvedAttrs[key] == 'object' and typeof value == 'object' and _.all([resolvedAttrs[key], newAttrs[key]], ((val) -> val != null))
+          if (typeof resolvedAttrs[key] == 'object' and
+              typeof value == 'object' and
+              _.all([resolvedAttrs[key], newAttrs[key]], ((val) -> val != null)))
             resolvedAttrs[key] = resolveAttributes(resolvedAttrs[key], value)
           else
             resolvedAttrs[key] = value
@@ -40,6 +42,5 @@ class Op
 
   printAttributes: ->
     return JSON.stringify(@attributes)
-
 
 module.exports = Op
