@@ -22,7 +22,7 @@ getUtils = (domain) ->
     throw new Error("Domain must define defaultAttributeValue.")
 
   return {
-    getRandomString: (alphabet, length) ->
+    getRandomString: (length) ->
       return _.map([0..(length - 1)], ->
         return domain.alphabet[_.random(0, domain.alphabet.length - 1)]
       ).join('')

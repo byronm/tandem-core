@@ -33,7 +33,7 @@
       throw new Error("Domain must define defaultAttributeValue.");
     }
     return {
-      getRandomString: function(alphabet, length) {
+      getRandomString: function(length) {
         var _i, _ref, _results;
         return _.map((function() {
           _results = [];
