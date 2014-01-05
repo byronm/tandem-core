@@ -89,13 +89,13 @@
           if (numToDelete > 0 && reachedDeletionPoint) {
             curDelete = Math.min(numToDelete, op.getLength() - (deletionPoint - charIndex));
             numToDelete -= curDelete;
-            if (Delta.isInsert(op)) {
+            if (InsertOp.isInsert(op)) {
               newText = op.value.substring(0, deletionPoint - charIndex) + op.value.substring(deletionPoint - charIndex + curDelete);
               if (newText.length > 0) {
                 ops.push(new InsertOp(newText));
               }
             } else {
-              if (!Delta.isRetain(op)) {
+              if (!RetainOp.isRetain(op)) {
                 throw new Error("Expected retain but got " + op);
               }
               head = new RetainOp(op.start, op.start + deletionPoint - charIndex, _.clone(op.attributes));
@@ -123,7 +123,7 @@
           _this = this;
         _splitOpInThree = function(elem, splitAt, length, reference) {
           var cur, curStr, head, headStr, marker, newCur, op, origOps, tail, tailStr, _i, _len;
-          if (Delta.isInsert(elem)) {
+          if (InsertOp.isInsert(elem)) {
             headStr = elem.value.substring(0, splitAt);
             head = new InsertOp(headStr, _.clone(elem.attributes));
             curStr = elem.value.substring(splitAt, splitAt + length);
@@ -137,7 +137,7 @@
               tail = new InsertOp(tailStr, _.clone(elem.attributes));
             }
           } else {
-            if (!Delta.isRetain(elem)) {
+            if (!RetainOp.isRetain(elem)) {
               throw new Error("Expected retain but got " + elem);
             }
             head = new RetainOp(elem.start, elem.start + splitAt, _.clone(elem.attributes));
@@ -145,14 +145,14 @@
             tail = new RetainOp(cur.end, elem.end, _.clone(elem.attributes));
             origOps = reference.getOpsAt(cur.start, cur.getLength());
             if (!_.every(origOps, function(op) {
-              return Delta.isInsert(op);
+              return InsertOp.isInsert(op);
             })) {
               throw new Error("Non insert op in backref");
             }
             marker = cur.start;
             for (_i = 0, _len = origOps.length; _i < _len; _i++) {
               op = origOps[_i];
-              if (Delta.isInsert(op)) {
+              if (InsertOp.isInsert(op)) {
                 if (op.value.indexOf('\n') !== -1) {
                   cur = new RetainOp(cur.start, marker + op.value.indexOf('\n'), _.clone(cur.attributes));
                   tail = new RetainOp(marker + op.value.indexOf('\n'), tail.end, _.clone(tail.attributes));
@@ -186,14 +186,14 @@
         };
         _formatBooleanAttribute = function(op, tail, attr, reference) {
           var referenceOps;
-          if (Delta.isInsert(op)) {
+          if (InsertOp.isInsert(op)) {
             if (op.attributes[attr] != null) {
               return delete op.attributes[attr];
             } else {
               return op.attributes[attr] = true;
             }
           } else {
-            if (!Delta.isRetain(op)) {
+            if (!RetainOp.isRetain(op)) {
               throw new Error("Expected retain but got " + op);
             }
             if (op.attributes[attr] != null) {
@@ -201,7 +201,7 @@
             } else {
               referenceOps = reference.getOpsAt(op.start, op.getLength());
               if (!_.every(referenceOps, function(op) {
-                return Delta.isInsert(op);
+                return InsertOp.isInsert(op);
               })) {
                 throw new Error("Formatting a retain that does not refer to an insert.");
               }
@@ -228,15 +228,15 @@
               return _.first(_.shuffle(_.without(domain.nonBooleanAttributes[attr], domain.defaultAttributeValue[attr])));
             }
           };
-          if (Delta.isInsert(op)) {
+          if (InsertOp.isInsert(op)) {
             return op.attributes[attr] = getNewAttrVal(attr, op.attributes[attr]);
           } else {
-            if (!Delta.isRetain(op)) {
+            if (!RetainOp.isRetain(op)) {
               throw new Error("Expected retain but got " + op);
             }
             referenceOps = reference.getOpsAt(op.start, op.getLength());
             if (!_.every(referenceOps, function(op) {
-              return Delta.isInsert(op);
+              return InsertOp.isInsert(op);
             })) {
               throw new Error("Formatting a retain that does not refer to an insert.");
             }

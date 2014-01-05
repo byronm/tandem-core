@@ -63,12 +63,12 @@ getUtils = (domain) ->
           curDelete = Math.min(numToDelete,
             op.getLength() - (deletionPoint - charIndex))
           numToDelete -= curDelete
-          if Delta.isInsert(op)
+          if InsertOp.isInsert(op)
             newText = op.value.substring(0, deletionPoint - charIndex) +
               op.value.substring(deletionPoint - charIndex + curDelete)
             ops.push(new InsertOp(newText)) if newText.length > 0
           else
-            unless Delta.isRetain(op)
+            unless RetainOp.isRetain(op)
               throw new Error("Expected retain but got #{op}")
             head = new RetainOp(
               op.start,
@@ -91,7 +91,7 @@ getUtils = (domain) ->
 
     formatAt: (delta, formatPoint, numToFormat, attrs, reference) ->
       _splitOpInThree = (elem, splitAt, length, reference) ->
-        if Delta.isInsert(elem)
+        if InsertOp.isInsert(elem)
           headStr = elem.value.substring(0, splitAt)
           head = new InsertOp(headStr, _.clone(elem.attributes))
           curStr = elem.value.substring(splitAt, splitAt + length)
@@ -105,7 +105,7 @@ getUtils = (domain) ->
             cur = new InsertOp(newCur, _.clone(elem.attributes))
             tail = new InsertOp(tailStr, _.clone(elem.attributes))
         else
-          unless Delta.isRetain(elem)
+          unless RetainOp.isRetain(elem)
             throw new Error("Expected retain but got #{elem}")
           head = new RetainOp(elem.start, elem.start + splitAt,
             _.clone(elem.attributes))
@@ -113,11 +113,11 @@ getUtils = (domain) ->
             _.clone(elem.attributes))
           tail = new RetainOp(cur.end, elem.end, _.clone(elem.attributes))
           origOps = reference.getOpsAt(cur.start, cur.getLength())
-          unless _.every(origOps, (op) -> Delta.isInsert(op))
+          unless _.every(origOps, (op) -> InsertOp.isInsert(op))
             throw new Error("Non insert op in backref")
           marker = cur.start
           for op in origOps
-            if Delta.isInsert(op)
+            if InsertOp.isInsert(op)
               if op.value.indexOf('\n') != -1
                 cur = new RetainOp(cur.start, marker + op.value.indexOf('\n'),
                   _.clone(cur.attributes))
@@ -142,19 +142,19 @@ getUtils = (domain) ->
             length += refOp.getLength()
 
       _formatBooleanAttribute = (op, tail, attr, reference) ->
-        if Delta.isInsert(op)
+        if InsertOp.isInsert(op)
           if op.attributes[attr]?
             delete op.attributes[attr]
           else
             op.attributes[attr] = true
         else
-          unless Delta.isRetain(op)
+          unless RetainOp.isRetain(op)
             throw new Error("Expected retain but got #{op}") 
           if op.attributes[attr]?
             delete op.attributes[attr]
           else
             referenceOps = reference.getOpsAt(op.start, op.getLength())
-            unless _.every(referenceOps, (op) -> Delta.isInsert(op))
+            unless _.every(referenceOps, (op) -> InsertOp.isInsert(op))
               throw new Error(
                 "Formatting a retain that does not refer to an insert."
               )
@@ -181,13 +181,13 @@ getUtils = (domain) ->
                 _.without(domain.nonBooleanAttributes[attr],
                 domain.defaultAttributeValue[attr])))
 
-        if Delta.isInsert(op)
+        if InsertOp.isInsert(op)
           op.attributes[attr] = getNewAttrVal(attr, op.attributes[attr])
         else
-          unless Delta.isRetain(op)
+          unless RetainOp.isRetain(op)
             throw new Error("Expected retain but got #{op}")
           referenceOps = reference.getOpsAt(op.start, op.getLength())
-          unless _.every(referenceOps, (op) -> Delta.isInsert(op))
+          unless _.every(referenceOps, (op) -> InsertOp.isInsert(op))
             throw new Error(
               "Formatting a retain that does not refer to an insert."
             )

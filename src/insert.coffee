@@ -3,9 +3,6 @@ Op = require('./op')
 
 
 class InsertOp extends Op
-  @isInsert: (i) ->
-    return i? && typeof i.value == "string"
-
   constructor: (@value, attributes = {}) ->
     @attributes = _.clone(attributes)
 

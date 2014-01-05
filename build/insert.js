@@ -10,10 +10,6 @@
   InsertOp = (function(_super) {
     __extends(InsertOp, _super);
 
-    InsertOp.isInsert = function(i) {
-      return (i != null) && typeof i.value === "string";
-    };
-
     function InsertOp(value, attributes) {
       this.value = value;
       if (attributes == null) {

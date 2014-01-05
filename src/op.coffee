@@ -1,11 +1,12 @@
 _ = require('underscore')._
 
-# TODO fix code duplication
-isInsert = (i) ->
-  return i? && typeof i.value == "string"
-
-
 class Op
+  @isInsert: (i) ->
+    return i? && typeof i.value == "string"
+
+  @isRetain: (r) ->
+    return r? && typeof r.start == "number" && typeof r.end == "number"
+
   constructor: (attributes = {}) ->
     @attributes = _.clone(attributes)
 
@@ -24,7 +25,7 @@ class Op
       return oldAttrs if !newAttrs
       resolvedAttrs = _.clone(oldAttrs)
       for key, value of newAttrs
-        if isInsert(this) and value == null
+        if Op.isInsert(this) and value == null
           delete resolvedAttrs[key]
         else if typeof value != 'undefined'
           if typeof resolvedAttrs[key] == 'object' and typeof value == 'object' and _.all([resolvedAttrs[key], newAttrs[key]], ((val) -> val != null))
