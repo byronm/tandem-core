@@ -17,6 +17,9 @@
 
   getUtils = function(domain) {
     domain = domain || _cachedDomain;
+    if (domain == null) {
+      throw new Error("Must provide DeltaGenerator with a domain.");
+    }
     return {
       getRandomString: function(alphabet, length) {
         var _i, _ref, _results;

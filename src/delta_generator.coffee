@@ -10,6 +10,7 @@ setDomain = (domain) ->
 
 getUtils = (domain) ->
   domain = domain or _cachedDomain
+  throw new Error("Must provide DeltaGenerator with a domain.") unless domain?
   return {
     getRandomString: (alphabet, length) ->
       return _.map([0..(length - 1)], ->
