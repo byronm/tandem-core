@@ -99,7 +99,7 @@ getUtils = (domain) ->
             tailStr = curStr.substring(curStr.indexOf('\n')) + tailStr
             cur = new InsertOp(newCur, _.clone(elem.attributes))
             tail = new InsertOp(tailStr, _.clone(elem.attributes))
-        else 
+        else
           throw new Error("Expected retain but got #{elem}") unless Delta.isRetain(elem)
           head = new RetainOp(elem.start, elem.start + splitAt,
             _.clone(elem.attributes))
@@ -173,6 +173,7 @@ getUtils = (domain) ->
                 delete op.attributes[attr]
             else
               op.attributes[attr] = getNewAttrVal(op.attributes[attr])
+
       charIndex = 0
       ops = []
       for op in delta.ops
