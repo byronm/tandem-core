@@ -2,8 +2,8 @@ _  = require('underscore')._
 Op = require('./op')
 
 
-# Used to represent retains in the delta. [inclusive, exclusive)
 class RetainOp extends Op
+  # (@start, @end) is is [inclusive, exclusive)
   constructor: (@start, @end, attributes = {}) ->
     @attributes = _.clone(attributes)
 
