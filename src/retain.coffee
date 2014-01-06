@@ -3,7 +3,7 @@ Op = require('./op')
 
 
 class RetainOp extends Op
-  # (@start, @end) is is [inclusive, exclusive)
+  # (@start, @end) is [inclusive, exclusive)
   constructor: (@start, @end, attributes = {}) ->
     @attributes = _.clone(attributes)
 
