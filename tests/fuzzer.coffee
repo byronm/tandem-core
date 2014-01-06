@@ -6,8 +6,32 @@ InsertOp = Tandem.InsertOp
 RetainOp = Tandem.RetainOp
 DeltaGen = Tandem.DeltaGen
 
+domain =
+  alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  "
+
+  booleanAttributes:
+    'bold'      : [true, false],
+    'italic'    : [true, false],
+    'strike'    : [true, false],
+
+  nonBooleanAttributes:
+    'back-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
+    'fore-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
+    'font-name' : ['monospace', 'serif'],
+    'font-size' : ['huge', 'large', 'small'],
+
+  defaultAttributeValue:
+    'back-color' : 'white',
+    'fore-color' : 'black',
+    'font-name'  : 'san-serif',
+    'font-size'  : 'normal'
+
+
+DeltaGen.setDomain(domain)
+DeltaGen = DeltaGen.getUtils()
+
 ##############################
-# Fuzzer to test compose, follows, and applyDeltaToText.
+# Fuzzer to test compose, transform, and applyDeltaToText.
 # This test simulates two clients each making 10000 deltas on the document.
 # On each iteration, each client applies their own delta, and the others
 # delta, to their document. After doing so, we assert that the document is in
@@ -20,7 +44,7 @@ DeltaGen = Tandem.DeltaGen
 ##############################
 describe('Fuzzers', ->
   ##############################
-  # Fuzz lots of changes being made to the doc (compose, follows, applyDeltaToText
+  # Fuzz lots of changes being made to the doc (compose, transform, applyDeltaToText
   # all get fuzzed here)
   ##############################
   it('should pass all standard fuzzing', ->
@@ -32,8 +56,8 @@ describe('Fuzzers', ->
       deltaB = DeltaGen.getRandomDelta(xDelta)
       # 50/50 as to which client gets priority
       isRemote = if Math.random() > 0.5 then true else false
-      deltaBPrime = deltaB.follows(deltaA, isRemote)
-      deltaAPrime = deltaA.follows(deltaB, !isRemote)
+      deltaBPrime = deltaB.transform(deltaA, isRemote)
+      deltaAPrime = deltaA.transform(deltaB, !isRemote)
       deltaAFinal = deltaA.compose(deltaBPrime)
       deltaBFinal = deltaB.compose(deltaAPrime)
       xA = deltaAFinal.applyToText(x)
@@ -58,15 +82,16 @@ describe('Fuzzers', ->
       for j in [0...10]
         indexToFormat = _.random(0, deltaA.endLength - 1)
         numToFormat = _.random(0, deltaA.endLength - indexToFormat - 1)
-        attributes = ["bold", "italic", "size"]
         # Pick a random number of random attributes
-        attributes.sort(-> return 0.5 - Math.random())
+        attributes = _.keys(domain.booleanAttributes).concat(
+          _.keys(domain.nonBooleanAttributes))
+        attributes = _.sortBy(attributes, -> return 0.5 - Math.random())
         numAttrs = Math.floor(Math.random() * (attributes.length + 1))
         attrs = attributes.slice(0, numAttrs)
         numToFormat = Math.floor(Math.random() * (deltaA.endLength - indexToFormat))
         DeltaGen.formatAt(deltaA, indexToFormat, numToFormat, attrs, new Delta(0, 0, []))
 
-      deltaC = deltaA
+      deltaC = Delta.makeDelta(deltaA)
       numChanges = Math.floor(Math.random() * 11)
       for j in [0...numChanges]
         DeltaGen.addRandomOp(deltaC, deltaA)

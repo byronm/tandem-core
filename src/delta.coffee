@@ -17,21 +17,15 @@ class Delta
     if (delta? && typeof delta == "object" && typeof delta.startLength == "number" &&
         typeof delta.endLength == "number" && typeof delta.ops == "object")
       for op in delta.ops
-        return false unless Delta.isRetain(op) or Delta.isInsert(op)
+        return false unless Op.isRetain(op) or Op.isInsert(op)
       return true
     return false
 
-  @isInsert: (op) ->
-    return InsertOp.isInsert(op)
-
-  @isRetain: (op) ->
-    return RetainOp.isRetain(op)
-
   @makeDelta: (obj) ->
     return new Delta(obj.startLength, obj.endLength, _.map(obj.ops, (op) ->
-      if InsertOp.isInsert(op)
+      if Op.isInsert(op)
         return new InsertOp(op.value, op.attributes)
-      else if RetainOp.isRetain(op)
+      else if Op.isRetain(op)
         return new RetainOp(op.start, op.end, op.attributes)
       else
         return null
@@ -60,9 +54,9 @@ class Delta
       @ops = @endLength
       @endLength = null
     @ops = _.map(@ops, (op) ->
-      if RetainOp.isRetain(op)
+      if Op.isRetain(op)
         return op
-      else if InsertOp.isInsert(op)
+      else if Op.isInsert(op)
         return op
       else
         throw new Error("Creating delta with invalid op. Expecting an insert or retain.")
@@ -83,10 +77,10 @@ class Delta
     offset = 0      # Tracks how many characters inserted to correctly offset new text
     retains = []
     _.each(@ops, (op) =>
-      if Delta.isInsert(op)
+      if Op.isInsert(op)
         insertFn.call(context, index + offset, op.value, op.attributes)
         offset += op.getLength()
-      else if Delta.isRetain(op)
+      else if Op.isRetain(op)
         if op.start > index
           deleteFn.call(context, index + offset, op.start - index)
           offset -= (op.start - index)
@@ -113,7 +107,7 @@ class Delta
       throw new Error("Start length of delta: #{delta.startLength} is not equal to the text: #{text.length}")
     appliedText = []
     for op in delta.ops
-      if Delta.isInsert(op)
+      if Op.isInsert(op)
         appliedText.push(op.value)
       else
         appliedText.push(text.substring(op.start, op.end))
@@ -133,9 +127,9 @@ class Delta
         compacted.push(op)
       else
         last = _.last(compacted)
-        if InsertOp.isInsert(last) && InsertOp.isInsert(op) && last.attributesMatch(op)
+        if Op.isInsert(last) && Op.isInsert(op) && last.attributesMatch(op)
           compacted[compacted.length - 1] = new InsertOp(last.value + op.value, op.attributes)
-        else if RetainOp.isRetain(last) && RetainOp.isRetain(op) && last.end == op.start && last.attributesMatch(op)
+        else if Op.isRetain(last) && Op.isRetain(op) && last.end == op.start && last.attributesMatch(op)
           compacted[compacted.length - 1] = new RetainOp(last.start, op.end, op.attributes)
         else
           compacted.push(op)
@@ -149,12 +143,12 @@ class Delta
     deltaA = this
     composed = []
     for opInB in deltaB.ops
-      if Delta.isInsert(opInB)
+      if Op.isInsert(opInB)
         composed.push(opInB)
-      else if Delta.isRetain(opInB)
+      else if Op.isRetain(opInB)
         opsInRange = deltaA.getOpsAt(opInB.start, opInB.getLength())
         opsInRange = _.map(opsInRange, (opInA) ->
-          if Delta.isInsert(opInA)
+          if Op.isInsert(opInA)
             return new InsertOp(opInA.value, opInA.composeAttributes(opInB.attributes))
           else
             return new RetainOp(opInA.start, opInA.end, opInA.composeAttributes(opInB.attributes))
@@ -177,8 +171,8 @@ class Delta
     deltaC = this
     throw new Error("Decompose called when deltaA is not a Delta, type: " + typeof deltaA) unless Delta.isDelta(deltaA)
     throw new Error("startLength #{deltaA.startLength} / startLength #{@startLength} mismatch") unless deltaA.startLength == @startLength
-    throw new Error("DeltaA has retain in decompose") unless _.all(deltaA.ops, ((op) -> return Delta.isInsert(op)))
-    throw new Error("DeltaC has retain in decompose") unless _.all(deltaC.ops, ((op) -> return Delta.isInsert(op)))
+    throw new Error("DeltaA has retain in decompose") unless _.all(deltaA.ops, ((op) -> return Op.isInsert(op)))
+    throw new Error("DeltaC has retain in decompose") unless _.all(deltaC.ops, ((op) -> return Op.isInsert(op)))
 
     decomposeAttributes = (attrA, attrC) ->
       decomposedAttributes = {}
@@ -200,10 +194,10 @@ class Delta
       opsInC = deltaC.getOpsAt(offset, op.getLength())
       offsetC = 0
       _.each(opsInC, (opInC) ->
-        if Delta.isInsert(op)
+        if Op.isInsert(op)
           d = new InsertOp(op.value.substring(offsetC, offsetC + opInC.getLength()), opInC.attributes)
           ops.push(d)
-        else if Delta.isRetain(op)
+        else if Op.isRetain(op)
           opsInA = deltaA.getOpsAt(op.start + offsetC, opInC.getLength())
           offsetA = 0
           _.each(opsInA, (opInA) ->
@@ -253,104 +247,147 @@ class Delta
       insertDelta = new Delta(0, 0, [])
     return insertDelta
 
-  # We compute the follow according to the following rules:
-  # 1. Insertions in deltaA become retained characters in the follow set
-  # 2. Insertions in deltaB become inserted characters in the follow set
+  _insertInsertCase = (elemA, elemB, indexes, aIsRemote) ->
+    results = _.extend({}, indexes)
+    length = Math.min(elemA.getLength(), elemB.getLength())
+    if aIsRemote
+      results.transformOp = new RetainOp(results.indexA, results.indexA + length)
+      results.indexA += length
+      if length == elemA.getLength()
+        results.elemIndexA++
+      else if length < elemA.getLength()
+        results.elemA = _.last(elemA.split(length))
+      else
+        throw new Error("Invalid elem length in transform")
+    else
+      results.transformOp = _.first(elemB.split(length))
+      results.indexB += length
+      if length == elemB.getLength()
+        results.elemIndexB++
+      else
+        results.elemB = _.last(elemB.split(length))
+    return results
+
+  _retainRetainCase = (elemA, elemB, indexes) ->
+    {indexA, indexB, elemIndexA, elemIndexB} = indexes
+    results = _.extend({}, indexes)
+    if elemA.end < elemB.start
+      # The retains don't match, so throw away the lower and advance.
+      results.indexA += elemA.getLength()
+      results.elemIndexA++
+    else if elemB.end < elemA.start
+      # The retains don't match, so throw away the lower and advance.
+      results.indexB += elemB.getLength()
+      results.elemIndexB++
+    else
+      # A subrange or the entire range matches
+      if elemA.start < elemB.start
+        results.indexA += (elemB.start - elemA.start)
+        elemA = results.elemA = new RetainOp(elemB.start, elemA.end,
+          elemA.attributes)
+      else if elemB.start < elemA.start
+        results.indexB += (elemA.start - elemB.start)
+        elemB = results.elemB = new RetainOp(elemA.start, elemB.end,
+          elemB.attributes)
+      errMsg = "RetainOps must have same start length in transform"
+      throw new Error(errMsg) if elemA.start != elemB.start
+      length = Math.min(elemA.end, elemB.end) - elemA.start
+      addedAttributes = elemA.addAttributes(elemB.attributes)
+      # Keep the retain
+      results.transformOp = new RetainOp(results.indexA,
+        results.indexA + length, addedAttributes)
+      results.indexA += length
+      results.indexB += length
+      if (elemA.end == elemB.end)
+        results.elemIndexA++
+        results.elemIndexB++
+      else if (elemA.end < elemB.end)
+        results.elemIndexA++
+        results.elemB = _.last(elemB.split(length))
+      else
+        results.elemIndexB++
+        results.elemA = _.last(elemA.split(length))
+
+    if results.elemIndexA != indexes.elemIndexA
+      results.elemA = null
+    if results.elemIndexB != indexes.elemIndexB
+      results.elemB = null
+
+    return results
+
+  # We compute the transform according to the following rules:
+  # 1. Insertions in deltaA become retained characters in the transform
+  # 2. Insertions in deltaB become inserted characters in the transform
   # 3. Characters retained in deltaA and deltaB become retained characters in
-  #    the follow set
-  follows: (deltaA, aIsRemote = false) ->
-    deltaB = this
-    throw new Error("Follows called when deltaA is not a Delta, type: " + typeof deltaA) unless Delta.isDelta(deltaA)
+  #    the transform set
+  transform: (deltaA, aIsRemote = false) ->
+    if not Delta.isDelta(deltaA)
+      errMsg = "Transform called when deltaA is not a Delta, type: "
+      throw new Error(errMsg + typeof deltaA)
 
     deltaA = new Delta(deltaA.startLength, deltaA.endLength, deltaA.ops)
-    deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops)
-    followStartLength = deltaA.endLength
-    followSet = []
+    deltaB = new Delta(@startLength, @endLength, @ops)
+    transformOps = []
     indexA = indexB = 0 # Tracks character offset in the 'document'
     elemIndexA = elemIndexB = 0 # Tracks offset into the ops list
+
+    _applyResults = (results) ->
+      indexA = results.indexA if results.indexA?
+      indexB = results.indexB if results.indexB?
+      elemIndexA = results.elemIndexA if results.elemIndexA?
+      elemIndexB = results.elemIndexB if results.elemIndexB?
+      deltaA.ops[elemIndexA] = results.elemA if results.elemA?
+      deltaB.ops[elemIndexB] = results.elemB if results.elemB?
+      transformOps.push(results.transformOp) if results.transformOp?
+
+    _buildIndexes = ->
+      indexA: indexA
+      indexB: indexB
+      elemIndexA: elemIndexA
+      elemIndexB: elemIndexB
+
     while elemIndexA < deltaA.ops.length and elemIndexB < deltaB.ops.length
       elemA = deltaA.ops[elemIndexA]
       elemB = deltaB.ops[elemIndexB]
 
-      if Delta.isInsert(elemA) and Delta.isInsert(elemB)
-        length = Math.min(elemA.getLength(), elemB.getLength())
-        if aIsRemote
-          followSet.push(new RetainOp(indexA, indexA + length))
-          indexA += length
-          if length == elemA.getLength()
-            elemIndexA++
-          else
-            throw new Error("Invalid elem length in follows") unless length < elemA.getLength()
-            deltaA.ops[elemIndexA] = _.last(elemA.split(length))
-        else
-          followSet.push(_.first(elemB.split(length)))
-          indexB += length
-          if length == elemB.getLength()
-            elemIndexB++
-          else
-            deltaB.ops[elemIndexB] = _.last(elemB.split(length))
+      if Op.isInsert(elemA) and Op.isInsert(elemB)
+        results = _insertInsertCase(elemA, elemB, _buildIndexes(), aIsRemote)
+        _applyResults(results)
 
-      else if Delta.isRetain(elemA) and Delta.isRetain(elemB)
-        if elemA.end < elemB.start
-          # Not a match, can't save. Throw away lower and adv.
-          indexA += elemA.getLength()
-          elemIndexA++
-        else if elemB.end < elemA.start
-          # Not a match, can't save. Throw away lower and adv.
-          indexB += elemB.getLength()
-          elemIndexB++
-        else
-          # A subrange or the entire range matches
-          if elemA.start < elemB.start
-            indexA += elemB.start - elemA.start
-            elemA = deltaA.ops[elemIndexA] = new RetainOp(elemB.start, elemA.end, elemA.attributes)
-          else if elemB.start < elemA.start
-            indexB += elemA.start - elemB.start
-            elemB = deltaB.ops[elemIndexB] = new RetainOp(elemA.start, elemB.end, elemB.attributes)
-          throw new Error("RetainOps must have same start length in follow set") if elemA.start != elemB.start
-          length = Math.min(elemA.end, elemB.end) - elemA.start
-          addedAttributes = elemA.addAttributes(elemB.attributes)
-          followSet.push(new RetainOp(indexA, indexA + length, addedAttributes)) # Keep the retain
-          indexA += length
-          indexB += length
-          if (elemA.end == elemB.end)
-            elemIndexA++
-            elemIndexB++
-          else if (elemA.end < elemB.end)
-            elemIndexA++
-            deltaB.ops[elemIndexB] = _.last(elemB.split(length))
-          else
-            deltaA.ops[elemIndexA] = _.last(elemA.split(length))
-            elemIndexB++
+      else if Op.isRetain(elemA) and Op.isRetain(elemB)
+        results = _retainRetainCase(elemA, elemB, _buildIndexes())
+        _applyResults(results)
 
-      else if Delta.isInsert(elemA) and Delta.isRetain(elemB)
-        followSet.push(new RetainOp(indexA, indexA + elemA.getLength()))
+      else if Op.isInsert(elemA) and Op.isRetain(elemB)
+        transformOps.push(new RetainOp(indexA, indexA + elemA.getLength()))
         indexA += elemA.getLength()
         elemIndexA++
-      else if Delta.isRetain(elemA) and Delta.isInsert(elemB)
-        followSet.push(elemB)
+
+      else if Op.isRetain(elemA) and Op.isInsert(elemB)
+        transformOps.push(elemB)
         indexB += elemB.getLength()
         elemIndexB++
 
-    # Remaining loops account for different length ops, only inserts will be
+    # Remaining loops account for different length deltas, only inserts will be
     # accepted
     while elemIndexA < deltaA.ops.length
       elemA = deltaA.ops[elemIndexA]
-      followSet.push(new RetainOp(indexA, indexA + elemA.getLength())) if Delta.isInsert(elemA) # retain elemA
+      if Op.isInsert(elemA) # retain elemA
+        transformOps.push(new RetainOp(indexA, indexA + elemA.getLength()))
       indexA += elemA.getLength()
       elemIndexA++
 
     while elemIndexB < deltaB.ops.length
       elemB = deltaB.ops[elemIndexB]
-      followSet.push(elemB) if Delta.isInsert(elemB) # insert elemB
+      transformOps.push(elemB) if Op.isInsert(elemB) # insert elemB
       indexB += elemB.getLength()
       elemIndexB++
 
-    followEndLength = 0
-    for elem in followSet
-      followEndLength += elem.getLength()
-    follow = new Delta(followStartLength, followEndLength, followSet)
-    return follow
+    transformStartLength = deltaA.endLength
+    transformEndLength = _.reduce(transformOps, (transformEndLength, op) ->
+      return transformEndLength + op.getLength()
+    , 0)
+    return new Delta(transformStartLength, transformEndLength, transformOps)
 
   getOpsAt: (index, length) ->
     changes = []
@@ -392,7 +429,7 @@ class Delta
         return true
       index = 0
       for op in @ops
-        if !RetainOp.isRetain(op) then return false
+        if !Op.isRetain(op) then return false
         if op.start != index then return false
         if !(op.numAttributes() == 0 || (op.numAttributes() == 1 && _.has(op.attributes, 'authorId')))
           return false
@@ -403,12 +440,12 @@ class Delta
 
   isInsertsOnly: ->
     return _.every(@ops, (op) ->
-      return Delta.isInsert(op)
+      return Op.isInsert(op)
     )
 
   merge: (other) ->
     ops = _.map(other.ops, (op) =>
-      if RetainOp.isRetain(op)
+      if Op.isRetain(op)
         return new RetainOp(op.start + @startLength, op.end + @startLength, op.attributes)
       else
         return op

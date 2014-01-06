@@ -10,10 +10,6 @@
   RetainOp = (function(_super) {
     __extends(RetainOp, _super);
 
-    RetainOp.isRetain = function(r) {
-      return (r != null) && typeof r.start === "number" && typeof r.end === "number";
-    };
-
     function RetainOp(start, end, attributes) {
       this.start = start;
       this.end = end;

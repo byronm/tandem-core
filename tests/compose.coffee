@@ -98,14 +98,14 @@ describe('compose', ->
       new InsertOp("j"), new RetainOp(31, 37),
       new InsertOp("bagcfe"), new RetainOp(37, 40),
       new InsertOp("koo"), new RetainOp(40, 43)
-    ], 2)
+    ])
     expectedComposed = new Delta(43, 77, [
       new RetainOp(0, 2), new InsertOp("fbnuethzmh"), new
       RetainOp(2, 23), new InsertOp("vaufgrwnowolht"), new RetainOp(23, 31),
       new InsertOp("j"), new RetainOp(31, 37), new
       InsertOp("bagcfe"), new RetainOp(37, 40), new
       InsertOp("koo"), new RetainOp(40, 43)
-    ], 2)
+    ])
     expectedDecomposed = deltaB
     testComposeAndDecompose(deltaA, deltaB, expectedComposed, expectedDecomposed)
   )
@@ -118,7 +118,7 @@ describe('compose', ->
       new InsertOp("j"), new RetainOp(31, 37),
       new InsertOp("bagcfe"), new RetainOp(37, 40),
       new InsertOp("koo"), new RetainOp(40, 43)
-    ], 2)
+    ])
     composed = deltaA.compose(deltaB)
     expectedComposed = new Delta(43, 77, [
       new RetainOp(0, 2), new InsertOp("fbnuethzmh"), new
@@ -126,7 +126,7 @@ describe('compose', ->
       new InsertOp("j"), new RetainOp(31, 37), new
       InsertOp("bagcfe"), new RetainOp(37, 40), new
       InsertOp("koo"), new RetainOp(40, 43)
-    ], 2)
+    ])
     expectedDecomposed = deltaB
     testComposeAndDecompose(deltaA, deltaB, expectedComposed, expectedDecomposed)
   )

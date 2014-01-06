@@ -1,13 +1,17 @@
 (function() {
-  var Op, isInsert, _;
+  var Op, _;
 
   _ = require('underscore')._;
 
-  isInsert = function(i) {
-    return (i != null) && typeof i.value === "string";
-  };
-
   Op = (function() {
+    Op.isInsert = function(i) {
+      return (i != null) && typeof i.value === "string";
+    };
+
+    Op.isRetain = function(r) {
+      return (r != null) && typeof r.start === "number" && typeof r.end === "number";
+    };
+
     function Op(attributes) {
       if (attributes == null) {
         attributes = {};
@@ -44,7 +48,7 @@
         resolvedAttrs = _.clone(oldAttrs);
         for (key in newAttrs) {
           value = newAttrs[key];
-          if (isInsert(_this) && value === null) {
+          if (Op.isInsert(_this) && value === null) {
             delete resolvedAttrs[key];
           } else if (typeof value !== 'undefined') {
             if (typeof resolvedAttrs[key] === 'object' && typeof value === 'object' && _.all([resolvedAttrs[key], newAttrs[key]], (function(val) {

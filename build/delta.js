@@ -14,6 +14,8 @@
   dmp = new diff_match_patch();
 
   Delta = (function() {
+    var _insertInsertCase, _retainRetainCase;
+
     Delta.getIdentity = function(length) {
       return new Delta(length, length, [new RetainOp(0, length)]);
     };
@@ -28,7 +30,7 @@
         _ref = delta.ops;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           op = _ref[_i];
-          if (!(Delta.isRetain(op) || Delta.isInsert(op))) {
+          if (!(Op.isRetain(op) || Op.isInsert(op))) {
             return false;
           }
         }
@@ -37,19 +39,11 @@
       return false;
     };
 
-    Delta.isInsert = function(op) {
-      return InsertOp.isInsert(op);
-    };
-
-    Delta.isRetain = function(op) {
-      return RetainOp.isRetain(op);
-    };
-
     Delta.makeDelta = function(obj) {
       return new Delta(obj.startLength, obj.endLength, _.map(obj.ops, function(op) {
-        if (InsertOp.isInsert(op)) {
+        if (Op.isInsert(op)) {
           return new InsertOp(op.value, op.attributes);
-        } else if (RetainOp.isRetain(op)) {
+        } else if (Op.isRetain(op)) {
           return new RetainOp(op.start, op.end, op.attributes);
         } else {
           return null;
@@ -103,9 +97,9 @@
         this.endLength = null;
       }
       this.ops = _.map(this.ops, function(op) {
-        if (RetainOp.isRetain(op)) {
+        if (Op.isRetain(op)) {
           return op;
-        } else if (InsertOp.isInsert(op)) {
+        } else if (Op.isInsert(op)) {
           return op;
         } else {
           throw new Error("Creating delta with invalid op. Expecting an insert or retain.");
@@ -144,10 +138,10 @@
       offset = 0;
       retains = [];
       _.each(this.ops, function(op) {
-        if (Delta.isInsert(op)) {
+        if (Op.isInsert(op)) {
           insertFn.call(context, index + offset, op.value, op.attributes);
           return offset += op.getLength();
-        } else if (Delta.isRetain(op)) {
+        } else if (Op.isRetain(op)) {
           if (op.start > index) {
             deleteFn.call(context, index + offset, op.start - index);
             offset -= op.start - index;
@@ -183,7 +177,7 @@
       _ref = delta.ops;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         op = _ref[_i];
-        if (Delta.isInsert(op)) {
+        if (Op.isInsert(op)) {
           appliedText.push(op.value);
         } else {
           appliedText.push(text.substring(op.start, op.end));
@@ -212,9 +206,9 @@
           return compacted.push(op);
         } else {
           last = _.last(compacted);
-          if (InsertOp.isInsert(last) && InsertOp.isInsert(op) && last.attributesMatch(op)) {
+          if (Op.isInsert(last) && Op.isInsert(op) && last.attributesMatch(op)) {
             return compacted[compacted.length - 1] = new InsertOp(last.value + op.value, op.attributes);
-          } else if (RetainOp.isRetain(last) && RetainOp.isRetain(op) && last.end === op.start && last.attributesMatch(op)) {
+          } else if (Op.isRetain(last) && Op.isRetain(op) && last.end === op.start && last.attributesMatch(op)) {
             return compacted[compacted.length - 1] = new RetainOp(last.start, op.end, op.attributes);
           } else {
             return compacted.push(op);
@@ -234,12 +228,12 @@
       _ref = deltaB.ops;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         opInB = _ref[_i];
-        if (Delta.isInsert(opInB)) {
+        if (Op.isInsert(opInB)) {
           composed.push(opInB);
-        } else if (Delta.isRetain(opInB)) {
+        } else if (Op.isRetain(opInB)) {
           opsInRange = deltaA.getOpsAt(opInB.start, opInB.getLength());
           opsInRange = _.map(opsInRange, function(opInA) {
-            if (Delta.isInsert(opInA)) {
+            if (Op.isInsert(opInA)) {
               return new InsertOp(opInA.value, opInA.composeAttributes(opInB.attributes));
             } else {
               return new RetainOp(opInA.start, opInA.end, opInA.composeAttributes(opInB.attributes));
@@ -263,12 +257,12 @@
         throw new Error("startLength " + deltaA.startLength + " / startLength " + this.startLength + " mismatch");
       }
       if (!_.all(deltaA.ops, (function(op) {
-        return Delta.isInsert(op);
+        return Op.isInsert(op);
       }))) {
         throw new Error("DeltaA has retain in decompose");
       }
       if (!_.all(deltaC.ops, (function(op) {
-        return Delta.isInsert(op);
+        return Op.isInsert(op);
       }))) {
         throw new Error("DeltaC has retain in decompose");
       }
@@ -302,10 +296,10 @@
         offsetC = 0;
         _.each(opsInC, function(opInC) {
           var d, offsetA, opsInA;
-          if (Delta.isInsert(op)) {
+          if (Op.isInsert(op)) {
             d = new InsertOp(op.value.substring(offsetC, offsetC + opInC.getLength()), opInC.attributes);
             ops.push(d);
-          } else if (Delta.isRetain(op)) {
+          } else if (Op.isRetain(op)) {
             opsInA = deltaA.getOpsAt(op.start + offsetC, opInC.getLength());
             offsetA = 0;
             _.each(opsInA, function(opInA) {
@@ -369,113 +363,164 @@
       return insertDelta;
     };
 
-    Delta.prototype.follows = function(deltaA, aIsRemote) {
-      var addedAttributes, deltaB, elem, elemA, elemB, elemIndexA, elemIndexB, follow, followEndLength, followSet, followStartLength, indexA, indexB, length, _i, _len;
+    _insertInsertCase = function(elemA, elemB, indexes, aIsRemote) {
+      var length, results;
+      results = _.extend({}, indexes);
+      length = Math.min(elemA.getLength(), elemB.getLength());
+      if (aIsRemote) {
+        results.transformOp = new RetainOp(results.indexA, results.indexA + length);
+        results.indexA += length;
+        if (length === elemA.getLength()) {
+          results.elemIndexA++;
+        } else if (length < elemA.getLength()) {
+          results.elemA = _.last(elemA.split(length));
+        } else {
+          throw new Error("Invalid elem length in transform");
+        }
+      } else {
+        results.transformOp = _.first(elemB.split(length));
+        results.indexB += length;
+        if (length === elemB.getLength()) {
+          results.elemIndexB++;
+        } else {
+          results.elemB = _.last(elemB.split(length));
+        }
+      }
+      return results;
+    };
+
+    _retainRetainCase = function(elemA, elemB, indexes) {
+      var addedAttributes, elemIndexA, elemIndexB, errMsg, indexA, indexB, length, results;
+      indexA = indexes.indexA, indexB = indexes.indexB, elemIndexA = indexes.elemIndexA, elemIndexB = indexes.elemIndexB;
+      results = _.extend({}, indexes);
+      if (elemA.end < elemB.start) {
+        results.indexA += elemA.getLength();
+        results.elemIndexA++;
+      } else if (elemB.end < elemA.start) {
+        results.indexB += elemB.getLength();
+        results.elemIndexB++;
+      } else {
+        if (elemA.start < elemB.start) {
+          results.indexA += elemB.start - elemA.start;
+          elemA = results.elemA = new RetainOp(elemB.start, elemA.end, elemA.attributes);
+        } else if (elemB.start < elemA.start) {
+          results.indexB += elemA.start - elemB.start;
+          elemB = results.elemB = new RetainOp(elemA.start, elemB.end, elemB.attributes);
+        }
+        errMsg = "RetainOps must have same start length in transform";
+        if (elemA.start !== elemB.start) {
+          throw new Error(errMsg);
+        }
+        length = Math.min(elemA.end, elemB.end) - elemA.start;
+        addedAttributes = elemA.addAttributes(elemB.attributes);
+        results.transformOp = new RetainOp(results.indexA, results.indexA + length, addedAttributes);
+        results.indexA += length;
+        results.indexB += length;
+        if (elemA.end === elemB.end) {
+          results.elemIndexA++;
+          results.elemIndexB++;
+        } else if (elemA.end < elemB.end) {
+          results.elemIndexA++;
+          results.elemB = _.last(elemB.split(length));
+        } else {
+          results.elemIndexB++;
+          results.elemA = _.last(elemA.split(length));
+        }
+      }
+      if (results.elemIndexA !== indexes.elemIndexA) {
+        results.elemA = null;
+      }
+      if (results.elemIndexB !== indexes.elemIndexB) {
+        results.elemB = null;
+      }
+      return results;
+    };
+
+    Delta.prototype.transform = function(deltaA, aIsRemote) {
+      var deltaB, elemA, elemB, elemIndexA, elemIndexB, errMsg, indexA, indexB, results, transformEndLength, transformOps, transformStartLength, _applyResults, _buildIndexes;
       if (aIsRemote == null) {
         aIsRemote = false;
       }
-      deltaB = this;
       if (!Delta.isDelta(deltaA)) {
-        throw new Error("Follows called when deltaA is not a Delta, type: " + typeof deltaA);
+        errMsg = "Transform called when deltaA is not a Delta, type: ";
+        throw new Error(errMsg + typeof deltaA);
       }
       deltaA = new Delta(deltaA.startLength, deltaA.endLength, deltaA.ops);
-      deltaB = new Delta(deltaB.startLength, deltaB.endLength, deltaB.ops);
-      followStartLength = deltaA.endLength;
-      followSet = [];
+      deltaB = new Delta(this.startLength, this.endLength, this.ops);
+      transformOps = [];
       indexA = indexB = 0;
       elemIndexA = elemIndexB = 0;
+      _applyResults = function(results) {
+        if (results.indexA != null) {
+          indexA = results.indexA;
+        }
+        if (results.indexB != null) {
+          indexB = results.indexB;
+        }
+        if (results.elemIndexA != null) {
+          elemIndexA = results.elemIndexA;
+        }
+        if (results.elemIndexB != null) {
+          elemIndexB = results.elemIndexB;
+        }
+        if (results.elemA != null) {
+          deltaA.ops[elemIndexA] = results.elemA;
+        }
+        if (results.elemB != null) {
+          deltaB.ops[elemIndexB] = results.elemB;
+        }
+        if (results.transformOp != null) {
+          return transformOps.push(results.transformOp);
+        }
+      };
+      _buildIndexes = function() {
+        return {
+          indexA: indexA,
+          indexB: indexB,
+          elemIndexA: elemIndexA,
+          elemIndexB: elemIndexB
+        };
+      };
       while (elemIndexA < deltaA.ops.length && elemIndexB < deltaB.ops.length) {
         elemA = deltaA.ops[elemIndexA];
         elemB = deltaB.ops[elemIndexB];
-        if (Delta.isInsert(elemA) && Delta.isInsert(elemB)) {
-          length = Math.min(elemA.getLength(), elemB.getLength());
-          if (aIsRemote) {
-            followSet.push(new RetainOp(indexA, indexA + length));
-            indexA += length;
-            if (length === elemA.getLength()) {
-              elemIndexA++;
-            } else {
-              if (!(length < elemA.getLength())) {
-                throw new Error("Invalid elem length in follows");
-              }
-              deltaA.ops[elemIndexA] = _.last(elemA.split(length));
-            }
-          } else {
-            followSet.push(_.first(elemB.split(length)));
-            indexB += length;
-            if (length === elemB.getLength()) {
-              elemIndexB++;
-            } else {
-              deltaB.ops[elemIndexB] = _.last(elemB.split(length));
-            }
-          }
-        } else if (Delta.isRetain(elemA) && Delta.isRetain(elemB)) {
-          if (elemA.end < elemB.start) {
-            indexA += elemA.getLength();
-            elemIndexA++;
-          } else if (elemB.end < elemA.start) {
-            indexB += elemB.getLength();
-            elemIndexB++;
-          } else {
-            if (elemA.start < elemB.start) {
-              indexA += elemB.start - elemA.start;
-              elemA = deltaA.ops[elemIndexA] = new RetainOp(elemB.start, elemA.end, elemA.attributes);
-            } else if (elemB.start < elemA.start) {
-              indexB += elemA.start - elemB.start;
-              elemB = deltaB.ops[elemIndexB] = new RetainOp(elemA.start, elemB.end, elemB.attributes);
-            }
-            if (elemA.start !== elemB.start) {
-              throw new Error("RetainOps must have same start length in follow set");
-            }
-            length = Math.min(elemA.end, elemB.end) - elemA.start;
-            addedAttributes = elemA.addAttributes(elemB.attributes);
-            followSet.push(new RetainOp(indexA, indexA + length, addedAttributes));
-            indexA += length;
-            indexB += length;
-            if (elemA.end === elemB.end) {
-              elemIndexA++;
-              elemIndexB++;
-            } else if (elemA.end < elemB.end) {
-              elemIndexA++;
-              deltaB.ops[elemIndexB] = _.last(elemB.split(length));
-            } else {
-              deltaA.ops[elemIndexA] = _.last(elemA.split(length));
-              elemIndexB++;
-            }
-          }
-        } else if (Delta.isInsert(elemA) && Delta.isRetain(elemB)) {
-          followSet.push(new RetainOp(indexA, indexA + elemA.getLength()));
+        if (Op.isInsert(elemA) && Op.isInsert(elemB)) {
+          results = _insertInsertCase(elemA, elemB, _buildIndexes(), aIsRemote);
+          _applyResults(results);
+        } else if (Op.isRetain(elemA) && Op.isRetain(elemB)) {
+          results = _retainRetainCase(elemA, elemB, _buildIndexes());
+          _applyResults(results);
+        } else if (Op.isInsert(elemA) && Op.isRetain(elemB)) {
+          transformOps.push(new RetainOp(indexA, indexA + elemA.getLength()));
           indexA += elemA.getLength();
           elemIndexA++;
-        } else if (Delta.isRetain(elemA) && Delta.isInsert(elemB)) {
-          followSet.push(elemB);
+        } else if (Op.isRetain(elemA) && Op.isInsert(elemB)) {
+          transformOps.push(elemB);
           indexB += elemB.getLength();
           elemIndexB++;
         }
       }
       while (elemIndexA < deltaA.ops.length) {
         elemA = deltaA.ops[elemIndexA];
-        if (Delta.isInsert(elemA)) {
-          followSet.push(new RetainOp(indexA, indexA + elemA.getLength()));
+        if (Op.isInsert(elemA)) {
+          transformOps.push(new RetainOp(indexA, indexA + elemA.getLength()));
         }
         indexA += elemA.getLength();
         elemIndexA++;
       }
       while (elemIndexB < deltaB.ops.length) {
         elemB = deltaB.ops[elemIndexB];
-        if (Delta.isInsert(elemB)) {
-          followSet.push(elemB);
+        if (Op.isInsert(elemB)) {
+          transformOps.push(elemB);
         }
         indexB += elemB.getLength();
         elemIndexB++;
       }
-      followEndLength = 0;
-      for (_i = 0, _len = followSet.length; _i < _len; _i++) {
-        elem = followSet[_i];
-        followEndLength += elem.getLength();
-      }
-      follow = new Delta(followStartLength, followEndLength, followSet);
-      return follow;
+      transformStartLength = deltaA.endLength;
+      transformEndLength = _.reduce(transformOps, function(transformEndLength, op) {
+        return transformEndLength + op.getLength();
+      }, 0);
+      return new Delta(transformStartLength, transformEndLength, transformOps);
     };
 
     Delta.prototype.getOpsAt = function(index, length) {
@@ -541,7 +586,7 @@
         _ref = this.ops;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           op = _ref[_i];
-          if (!RetainOp.isRetain(op)) {
+          if (!Op.isRetain(op)) {
             return false;
           }
           if (op.start !== index) {
@@ -562,7 +607,7 @@
 
     Delta.prototype.isInsertsOnly = function() {
       return _.every(this.ops, function(op) {
-        return Delta.isInsert(op);
+        return Op.isInsert(op);
       });
     };
 
@@ -570,7 +615,7 @@
       var ops,
         _this = this;
       ops = _.map(other.ops, function(op) {
-        if (RetainOp.isRetain(op)) {
+        if (Op.isRetain(op)) {
           return new RetainOp(op.start + _this.startLength, op.end + _this.startLength, op.attributes);
         } else {
           return op;

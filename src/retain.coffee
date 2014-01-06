@@ -2,11 +2,8 @@ _  = require('underscore')._
 Op = require('./op')
 
 
-# Used to represent retains in the delta. [inclusive, exclusive)
 class RetainOp extends Op
-  @isRetain: (r) ->
-    return r? && typeof r.start == "number" && typeof r.end == "number"
-
+  # (@start, @end) is [inclusive, exclusive)
   constructor: (@start, @end, attributes = {}) ->
     @attributes = _.clone(attributes)
 
@@ -17,7 +14,8 @@ class RetainOp extends Op
     return @end - @start
 
   isEqual: (other) ->
-    return other? and @start == other.start and @end == other.end and _.isEqual(@attributes, other.attributes)
+    return other? and @start == other.start and @end == other.end and
+      _.isEqual(@attributes, other.attributes)
 
   split: (offset) ->
     left = new RetainOp(@start, @start + offset, @attributes)

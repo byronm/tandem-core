@@ -97,8 +97,8 @@ describe('applyDeltaToText', ->
                                new RetainOp(1, 2),
                                new InsertOp("mklxowze"),
                                new RetainOp(2, 3)])
-    deltaBPrime = deltaB.follows(deltaA, true)
-    deltaAPrime = deltaA.follows(deltaB, false)
+    deltaBPrime = deltaB.transform(deltaA, true)
+    deltaAPrime = deltaA.transform(deltaB, false)
     deltaAFinal = deltaA.compose(deltaBPrime)
     deltaBFinal = deltaB.compose(deltaAPrime)
     xA = deltaAFinal.applyToText("abc")

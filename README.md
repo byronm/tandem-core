@@ -29,7 +29,7 @@ All other files/directories are just supporting npm/bundler, build, or documenta
     index.js - npm
     package.json - npm
     tandem-core-rails.gemspec - bundler
-    
+
 
 ### Version numbers
 
