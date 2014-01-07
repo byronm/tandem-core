@@ -1,7 +1,7 @@
 (function() {
   var Delta, DeltaGenerator, InsertOp, RetainOp, getUtils, setDomain, _, _cachedDomain;
 
-  _ = require('underscore')._;
+  _ = require('lodash');
 
   Delta = require('./delta');
 

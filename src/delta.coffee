@@ -1,4 +1,4 @@
-_                 = require('underscore')._
+_                 = require('lodash')
 diff_match_patch  = require('./diff_match_patch')
 Op                = require('./op')
 InsertOp          = require('./insert')

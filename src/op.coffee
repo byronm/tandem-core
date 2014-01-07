@@ -1,4 +1,4 @@
-_ = require('underscore')._
+_ = require('lodash')
 
 class Op
   @isInsert: (i) ->
