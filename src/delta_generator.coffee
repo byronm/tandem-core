@@ -239,7 +239,7 @@ getUtils = (domain) ->
         opLength = @getRandomLength()
         this.insertAt(newDelta,
                       opIndex,
-                      @getRandomString(domain.alphabet, opLength))
+                      @getRandomString(opLength))
       else if rand < 0.75
         return newDelta if referenceDelta.endLength <= 1
         # Scribe doesn't like us deleting the final \n
