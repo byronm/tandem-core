@@ -1,5 +1,5 @@
 (function() {
-  var Delta, DeltaGenerator, InsertOp, RetainOp, getUtils, setDomain, _, _cachedDomain;
+  var Delta, DeltaGenerator, InsertOp, RetainOp, getUtils, setDomain, _, _domain;
 
   _ = require('lodash');
 
@@ -9,14 +9,35 @@
 
   RetainOp = require('./retain');
 
-  _cachedDomain = null;
+  _domain = {
+    alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  ",
+    booleanAttributes: {
+      'bold': [true, false],
+      'italic': [true, false],
+      'strike': [true, false]
+    },
+    nonBooleanAttributes: {
+      'back-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow'],
+      'fore-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow'],
+      'font-name': ['monospace', 'serif'],
+      'font-size': ['huge', 'large', 'small']
+    },
+    defaultAttributeValue: {
+      'back-color': 'white',
+      'fore-color': 'black',
+      'font-name': 'san-serif',
+      'font-size': 'normal'
+    }
+  };
 
   setDomain = function(domain) {
-    return _cachedDomain = domain;
+    if (domain != null) {
+      return _domain = domain;
+    }
   };
 
   getUtils = function(domain) {
-    domain = domain || _cachedDomain;
+    domain = domain || _domain;
     if (domain == null) {
       throw new Error("Must provide DeltaGenerator with a domain.");
     }
@@ -33,6 +54,9 @@
       throw new Error("Domain must define defaultAttributeValue.");
     }
     return {
+      getDomain: function(domain) {
+        return _domain;
+      },
       getRandomString: function(length) {
         var _i, _ref, _results;
         return _.map((function() {
@@ -292,7 +316,7 @@
         rand = Math.random();
         if (rand < 0.5) {
           opLength = this.getRandomLength();
-          this.insertAt(newDelta, opIndex, this.getRandomString(domain.alphabet, opLength));
+          this.insertAt(newDelta, opIndex, this.getRandomString(opLength));
         } else if (rand < 0.75) {
           if (referenceDelta.endLength <= 1) {
             return newDelta;

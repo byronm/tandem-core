@@ -59,8 +59,8 @@ describe('Fuzzers', ->
         indexToFormat = _.random(0, deltaA.endLength - 1)
         numToFormat = _.random(0, deltaA.endLength - indexToFormat - 1)
         # Pick a random number of random attributes
-        attributes = _.keys(domain.booleanAttributes).concat(
-          _.keys(domain.nonBooleanAttributes))
+        attributes = _.keys(DeltaGen.getDomain().booleanAttributes).concat(
+          _.keys(DeltaGen.getDomain().nonBooleanAttributes))
         attributes = _.sortBy(attributes, -> return 0.5 - Math.random())
         numAttrs = Math.floor(Math.random() * (attributes.length + 1))
         attrs = attributes.slice(0, numAttrs)
