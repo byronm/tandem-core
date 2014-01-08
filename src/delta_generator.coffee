@@ -3,13 +3,32 @@ Delta      = require('./delta')
 InsertOp   = require('./insert')
 RetainOp   = require('./retain')
 
-_cachedDomain = null
+# Set the following domain as the default
+_domain =
+  alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  "
+
+  booleanAttributes:
+    'bold'      : [true, false],
+    'italic'    : [true, false],
+    'strike'    : [true, false],
+
+  nonBooleanAttributes:
+    'back-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
+    'fore-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
+    'font-name' : ['monospace', 'serif'],
+    'font-size' : ['huge', 'large', 'small'],
+
+  defaultAttributeValue:
+    'back-color' : 'white',
+    'fore-color' : 'black',
+    'font-name'  : 'san-serif',
+    'font-size'  : 'normal'
 
 setDomain = (domain) ->
-  _cachedDomain = domain
+  _domain = domain if domain?
 
 getUtils = (domain) ->
-  domain = domain or _cachedDomain
+  domain = domain or _domain
   unless domain?
     throw new Error("Must provide DeltaGenerator with a domain.")
   unless domain.alphabet?

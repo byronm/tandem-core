@@ -4,31 +4,7 @@ Tandem = require('../index')
 Delta      = Tandem.Delta
 InsertOp   = Tandem.InsertOp
 RetainOp   = Tandem.RetainOp
-DeltaGen   = Tandem.DeltaGen
-
-domain =
-  alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  "
-
-  booleanAttributes:
-    'bold'      : [true, false],
-    'italic'    : [true, false],
-    'strike'    : [true, false],
-
-  nonBooleanAttributes:
-    'back-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
-    'fore-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
-    'font-name' : ['monospace', 'serif'],
-    'font-size' : ['huge', 'large', 'small'],
-
-  defaultAttributeValue:
-    'back-color' : 'white',
-    'fore-color' : 'black',
-    'font-name'  : 'san-serif',
-    'font-size'  : 'normal'
-
-
-DeltaGen.setDomain(domain)
-DeltaGen = DeltaGen.getUtils()
+DeltaGen   = Tandem.DeltaGen.getUtils()
 
 describe('DeltaGen', ->
   describe('deleteAt', ->
