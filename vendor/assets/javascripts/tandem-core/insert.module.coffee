@@ -1,1 +1,0 @@
-../../../../src/insert.coffee
