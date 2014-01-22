@@ -4,31 +4,7 @@ Tandem   = require('../index')
 Delta    = Tandem.Delta
 InsertOp = Tandem.InsertOp
 RetainOp = Tandem.RetainOp
-DeltaGen = Tandem.DeltaGen
-
-domain =
-  alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  "
-
-  booleanAttributes:
-    'bold'      : [true, false],
-    'italic'    : [true, false],
-    'strike'    : [true, false],
-
-  nonBooleanAttributes:
-    'back-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
-    'fore-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow']
-    'font-name' : ['monospace', 'serif'],
-    'font-size' : ['huge', 'large', 'small'],
-
-  defaultAttributeValue:
-    'back-color' : 'white',
-    'fore-color' : 'black',
-    'font-name'  : 'san-serif',
-    'font-size'  : 'normal'
-
-
-DeltaGen.setDomain(domain)
-DeltaGen = DeltaGen.getUtils()
+DeltaGen = Tandem.DeltaGen.getUtils()
 
 ##############################
 # Fuzzer to test compose, transform, and applyDeltaToText.
@@ -83,8 +59,8 @@ describe('Fuzzers', ->
         indexToFormat = _.random(0, deltaA.endLength - 1)
         numToFormat = _.random(0, deltaA.endLength - indexToFormat - 1)
         # Pick a random number of random attributes
-        attributes = _.keys(domain.booleanAttributes).concat(
-          _.keys(domain.nonBooleanAttributes))
+        attributes = _.keys(DeltaGen.getDomain().booleanAttributes).concat(
+          _.keys(DeltaGen.getDomain().nonBooleanAttributes))
         attributes = _.sortBy(attributes, -> return 0.5 - Math.random())
         numAttrs = Math.floor(Math.random() * (attributes.length + 1))
         attrs = attributes.slice(0, numAttrs)
