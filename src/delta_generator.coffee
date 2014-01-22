@@ -1,4 +1,4 @@
-_          = require('underscore')._
+_          = require('lodash')
 Delta      = require('./delta')
 InsertOp   = require('./insert')
 RetainOp   = require('./retain')

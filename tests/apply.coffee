@@ -1,4 +1,4 @@
-_         = require('underscore')._
+_         = require('lodash')
 expect    = require('chai').expect
 
 Tandem    = require('../index')

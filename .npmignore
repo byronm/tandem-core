@@ -1,9 +1,11 @@
 lib
+bower_components
 node_modules
 src
 tests
 vendor
 .travis.yml
+bower.json
 Gruntfile.coffee
 Makefile
 tandem-core-rails.gemspec

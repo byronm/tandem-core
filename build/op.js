@@ -1,7 +1,7 @@
 (function() {
   var Op, _;
 
-  _ = require('underscore')._;
+  _ = require('lodash');
 
   Op = (function() {
     Op.isInsert = function(i) {

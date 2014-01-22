@@ -1,4 +1,4 @@
-_        = require('underscore')._
+_        = require('lodash')
 assert   = require('chai').assert
 Tandem   = require('../index')
 Delta    = Tandem.Delta
