@@ -1,7 +1,7 @@
 {
   "name": "tandem-core",
   "main": "build/tandem-core.js",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "homepage": "https://github.com/tandem/tandem-core",
   "dependencies": {
     "lodash": "2.4.x"  
