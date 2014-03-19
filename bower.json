@@ -2,7 +2,7 @@
   "name": "tandem-core",
   "main": "build/tandem-core.js",
   "version": "0.6.0",
-  "homepage": "https://github.com/stypi/tandem-core",
+  "homepage": "https://github.com/tandem/tandem-core",
   "dependencies": {
     "lodash": "2.4.x"  
   },

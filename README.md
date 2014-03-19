@@ -8,7 +8,7 @@ Tandem Core
 
 This repository is also both a Rails gem and a Node.js module.
 
-[![Build Status](https://secure.travis-ci.org/stypi/tandem-core.png?branch=master)](http://travis-ci.org/stypi/tandem-core)
+[![Build Status](https://secure.travis-ci.org/tandem/tandem-core.png?branch=master)](http://travis-ci.org/tandem/tandem-core)
 
 
 Project Organization

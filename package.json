@@ -29,16 +29,16 @@
   },
   "license": {
     "type": "BSD",
-    "url": "https://github.com/stypi/tandem-core/blob/master/LICENSE"
+    "url": "https://github.com/tandem/tandem-core/blob/master/LICENSE"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/stypi/tandem-core"
+    "url": "https://github.com/tandem/tandem-core"
   },
   "scripts": {
     "test": "make test"
   },
   "bugs": {
-    "url": "https://github.com/stypi/tandem-core/issues"
+    "url": "https://github.com/tandem/tandem-core/issues"
   }
 }
