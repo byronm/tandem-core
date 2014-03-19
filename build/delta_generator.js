@@ -143,8 +143,7 @@
         }, 0);
       },
       formatAt: function(delta, formatPoint, numToFormat, attrs, reference) {
-        var attr, charIndex, cur, curFormat, head, op, ops, reachedFormatPoint, tail, _formatBooleanAttribute, _formatNonBooleanAttribute, _i, _j, _len, _len1, _limitScope, _ref, _ref1, _splitOpInThree,
-          _this = this;
+        var attr, charIndex, cur, curFormat, head, op, ops, reachedFormatPoint, tail, _formatBooleanAttribute, _formatNonBooleanAttribute, _i, _j, _len, _len1, _limitScope, _ref, _ref1, _splitOpInThree;
         _splitOpInThree = function(elem, splitAt, length, reference) {
           var cur, curStr, head, headStr, marker, newCur, op, origOps, tail, tailStr, _i, _len;
           if (InsertOp.isInsert(elem)) {
@@ -243,37 +242,39 @@
             }
           }
         };
-        _formatNonBooleanAttribute = function(op, tail, attr, reference) {
-          var getNewAttrVal, referenceOps;
-          getNewAttrVal = function(prevVal) {
-            if (prevVal != null) {
-              return _.first(_.shuffle(_.without(domain.nonBooleanAttributes[attr], prevVal)));
-            } else {
-              return _.first(_.shuffle(_.without(domain.nonBooleanAttributes[attr], domain.defaultAttributeValue[attr])));
-            }
-          };
-          if (InsertOp.isInsert(op)) {
-            return op.attributes[attr] = getNewAttrVal(attr, op.attributes[attr]);
-          } else {
-            if (!RetainOp.isRetain(op)) {
-              throw new Error("Expected retain but got " + op);
-            }
-            referenceOps = reference.getOpsAt(op.start, op.getLength());
-            if (!_.every(referenceOps, function(op) {
-              return InsertOp.isInsert(op);
-            })) {
-              throw new Error("Formatting a retain that does not refer to an insert.");
-            }
-            if (referenceOps.length > 0) {
-              _limitScope(op, tail, attr, referenceOps);
-              if ((op.attributes[attr] != null) && Math.random() < 0.5) {
-                return delete op.attributes[attr];
+        _formatNonBooleanAttribute = (function(_this) {
+          return function(op, tail, attr, reference) {
+            var getNewAttrVal, referenceOps;
+            getNewAttrVal = function(prevVal) {
+              if (prevVal != null) {
+                return _.first(_.shuffle(_.without(domain.nonBooleanAttributes[attr], prevVal)));
               } else {
-                return op.attributes[attr] = getNewAttrVal(op.attributes[attr]);
+                return _.first(_.shuffle(_.without(domain.nonBooleanAttributes[attr], domain.defaultAttributeValue[attr])));
+              }
+            };
+            if (InsertOp.isInsert(op)) {
+              return op.attributes[attr] = getNewAttrVal(attr, op.attributes[attr]);
+            } else {
+              if (!RetainOp.isRetain(op)) {
+                throw new Error("Expected retain but got " + op);
+              }
+              referenceOps = reference.getOpsAt(op.start, op.getLength());
+              if (!_.every(referenceOps, function(op) {
+                return InsertOp.isInsert(op);
+              })) {
+                throw new Error("Formatting a retain that does not refer to an insert.");
+              }
+              if (referenceOps.length > 0) {
+                _limitScope(op, tail, attr, referenceOps);
+                if ((op.attributes[attr] != null) && Math.random() < 0.5) {
+                  return delete op.attributes[attr];
+                } else {
+                  return op.attributes[attr] = getNewAttrVal(op.attributes[attr]);
+                }
               }
             }
-          }
-        };
+          };
+        })(this);
         charIndex = 0;
         ops = [];
         _ref = delta.ops;

@@ -117,8 +117,7 @@
     }
 
     Delta.prototype.apply = function(insertFn, deleteFn, applyAttrFn, context) {
-      var index, offset, retains,
-        _this = this;
+      var index, offset, retains;
       if (insertFn == null) {
         insertFn = (function() {});
       }
@@ -137,34 +136,38 @@
       index = 0;
       offset = 0;
       retains = [];
-      _.each(this.ops, function(op) {
-        if (Op.isInsert(op)) {
-          insertFn.call(context, index + offset, op.value, op.attributes);
-          return offset += op.getLength();
-        } else if (Op.isRetain(op)) {
-          if (op.start > index) {
-            deleteFn.call(context, index + offset, op.start - index);
-            offset -= op.start - index;
+      _.each(this.ops, (function(_this) {
+        return function(op) {
+          if (Op.isInsert(op)) {
+            insertFn.call(context, index + offset, op.value, op.attributes);
+            return offset += op.getLength();
+          } else if (Op.isRetain(op)) {
+            if (op.start > index) {
+              deleteFn.call(context, index + offset, op.start - index);
+              offset -= op.start - index;
+            }
+            retains.push(new RetainOp(op.start + offset, op.end + offset, op.attributes));
+            return index = op.end;
           }
-          retains.push(new RetainOp(op.start + offset, op.end + offset, op.attributes));
-          return index = op.end;
-        }
-      });
+        };
+      })(this));
       if (this.endLength < this.startLength + offset) {
         deleteFn.call(context, this.endLength, this.startLength + offset - this.endLength);
       }
-      return _.each(retains, function(op) {
-        _.each(op.attributes, function(value, format) {
-          if (value === null) {
-            return applyAttrFn.call(context, op.start, op.end - op.start, format, value);
-          }
-        });
-        return _.each(op.attributes, function(value, format) {
-          if (value != null) {
-            return applyAttrFn.call(context, op.start, op.end - op.start, format, value);
-          }
-        });
-      });
+      return _.each(retains, (function(_this) {
+        return function(op) {
+          _.each(op.attributes, function(value, format) {
+            if (value === null) {
+              return applyAttrFn.call(context, op.start, op.end - op.start, format, value);
+            }
+          });
+          return _.each(op.attributes, function(value, format) {
+            if (value != null) {
+              return applyAttrFn.call(context, op.start, op.end - op.start, format, value);
+            }
+          });
+        };
+      })(this));
     };
 
     Delta.prototype.applyToText = function(text) {
@@ -612,15 +615,16 @@
     };
 
     Delta.prototype.merge = function(other) {
-      var ops,
-        _this = this;
-      ops = _.map(other.ops, function(op) {
-        if (Op.isRetain(op)) {
-          return new RetainOp(op.start + _this.startLength, op.end + _this.startLength, op.attributes);
-        } else {
-          return op;
-        }
-      });
+      var ops;
+      ops = _.map(other.ops, (function(_this) {
+        return function(op) {
+          if (Op.isRetain(op)) {
+            return new RetainOp(op.start + _this.startLength, op.end + _this.startLength, op.attributes);
+          } else {
+            return op;
+          }
+        };
+      })(this));
       ops = this.ops.concat(ops);
       return new Delta(this.startLength + other.startLength, ops);
     };

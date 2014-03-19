@@ -13,15 +13,14 @@
     "lodash"               : "2.4.x"
   },
   "devDependencies": {
-    "chai"                 : "1.4.x",
-    "coffee-script"        : "1.6.x",
-    "commander"            : "0.6.x",
+    "chai"                 : "1.9.x",
+    "coffee-script"        : "1.7.x",
     "grunt"                : "0.4.x",
     "grunt-contrib-clean"  : "0.5.x",
-    "grunt-contrib-coffee" : "0.7.x",
-    "grunt-contrib-watch"  : "0.5.x",
+    "grunt-contrib-coffee" : "0.10.x",
+    "grunt-contrib-watch"  : "0.6.x",
     "istanbul"             : "0.1.x",
-    "mocha"                : "1.8.x"
+    "mocha"                : "1.18.x"
   },
   "main": "index",
   "engines": {

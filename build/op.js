@@ -38,30 +38,31 @@
     };
 
     Op.prototype.composeAttributes = function(attributes) {
-      var resolveAttributes,
-        _this = this;
-      resolveAttributes = function(oldAttrs, newAttrs) {
-        var key, resolvedAttrs, value;
-        if (!newAttrs) {
-          return oldAttrs;
-        }
-        resolvedAttrs = _.clone(oldAttrs);
-        for (key in newAttrs) {
-          value = newAttrs[key];
-          if (Op.isInsert(_this) && value === null) {
-            delete resolvedAttrs[key];
-          } else if (typeof value !== 'undefined') {
-            if (typeof resolvedAttrs[key] === 'object' && typeof value === 'object' && _.all([resolvedAttrs[key], newAttrs[key]], (function(val) {
-              return val !== null;
-            }))) {
-              resolvedAttrs[key] = resolveAttributes(resolvedAttrs[key], value);
-            } else {
-              resolvedAttrs[key] = value;
+      var resolveAttributes;
+      resolveAttributes = (function(_this) {
+        return function(oldAttrs, newAttrs) {
+          var key, resolvedAttrs, value;
+          if (!newAttrs) {
+            return oldAttrs;
+          }
+          resolvedAttrs = _.clone(oldAttrs);
+          for (key in newAttrs) {
+            value = newAttrs[key];
+            if (Op.isInsert(_this) && value === null) {
+              delete resolvedAttrs[key];
+            } else if (typeof value !== 'undefined') {
+              if (typeof resolvedAttrs[key] === 'object' && typeof value === 'object' && _.all([resolvedAttrs[key], newAttrs[key]], (function(val) {
+                return val !== null;
+              }))) {
+                resolvedAttrs[key] = resolveAttributes(resolvedAttrs[key], value);
+              } else {
+                resolvedAttrs[key] = value;
+              }
             }
           }
-        }
-        return resolvedAttrs;
-      };
+          return resolvedAttrs;
+        };
+      })(this);
       return resolveAttributes(this.attributes, attributes);
     };
 
