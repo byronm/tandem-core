@@ -1,17 +1,15 @@
 (function() {
-  var Delta, InsertOp, Op, RetainOp, diff_match_patch, dmp, _;
+  var Delta, InsertOp, Op, RetainOp, jsdiff, _;
 
   _ = require('lodash');
 
-  diff_match_patch = require('./diff_match_patch');
+  jsdiff = require('diff');
 
   Op = require('./op');
 
   InsertOp = require('./insert');
 
   RetainOp = require('./retain');
-
-  dmp = new diff_match_patch();
 
   Delta = (function() {
     var _insertInsertCase, _retainRetainCase;
@@ -325,7 +323,7 @@
     };
 
     Delta.prototype.diff = function(other) {
-      var diff, finalLength, insertDelta, operation, ops, originalLength, textA, textC, value, _i, _len, _ref, _ref1;
+      var diff, finalLength, insertDelta, ops, originalLength, textA, textC, _ref;
       _ref = _.map([this, other], function(delta) {
         return _.map(delta.ops, function(op) {
           if (op.value != null) {
@@ -336,29 +334,25 @@
         }).join('');
       }), textA = _ref[0], textC = _ref[1];
       if (!(textA === '' && textC === '')) {
-        diff = dmp.diff_main(textA, textC);
+        diff = jsdiff.diffChars(textA, textC);
         if (diff.length <= 0) {
           throw new Error("diffToDelta called with diff with length <= 0");
         }
         originalLength = 0;
         finalLength = 0;
         ops = [];
-        for (_i = 0, _len = diff.length; _i < _len; _i++) {
-          _ref1 = diff[_i], operation = _ref1[0], value = _ref1[1];
-          switch (operation) {
-            case diff_match_patch.DIFF_DELETE:
-              originalLength += value.length;
-              break;
-            case diff_match_patch.DIFF_INSERT:
-              ops.push(new InsertOp(value));
-              finalLength += value.length;
-              break;
-            case diff_match_patch.DIFF_EQUAL:
-              ops.push(new RetainOp(originalLength, originalLength + value.length));
-              originalLength += value.length;
-              finalLength += value.length;
+        _.each(diff, function(part) {
+          if (part.added) {
+            ops.push(new InsertOp(part.value));
+            return finalLength += part.value.length;
+          } else if (part.removed) {
+            return originalLength += part.value.length;
+          } else {
+            ops.push(new RetainOp(originalLength, originalLength + part.value.length));
+            originalLength += part.value.length;
+            return finalLength += part.value.length;
           }
-        }
+        });
         insertDelta = new Delta(originalLength, finalLength, ops);
       } else {
         insertDelta = new Delta(0, 0, []);
