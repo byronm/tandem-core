@@ -1,10 +1,8 @@
-_                 = require('lodash')
-diff_match_patch  = require('./diff_match_patch')
-Op                = require('./op')
-InsertOp          = require('./insert')
-RetainOp          = require('./retain')
-
-dmp = new diff_match_patch()
+_        = require('lodash')
+jsdiff   = require('diff')
+Op       = require('./op')
+InsertOp = require('./insert')
+RetainOp = require('./retain')
 
 class Delta
   @getIdentity: (length) ->
@@ -224,24 +222,24 @@ class Delta
       ).join('')
     )
     unless textA == '' and textC == ''
-      diff = dmp.diff_main(textA, textC)
+      diff = jsdiff.diffChars(textA, textC)
       throw new Error("diffToDelta called with diff with length <= 0") if diff.length <= 0
       originalLength = 0
       finalLength = 0
       ops = []
       # For each difference apply them separately so we do not disrupt the cursor
-      for [operation, value] in diff
-        switch operation
-          when diff_match_patch.DIFF_DELETE
-            # Deletes implied
-            originalLength += value.length
-          when diff_match_patch.DIFF_INSERT
-            ops.push(new InsertOp(value))
-            finalLength += value.length
-          when diff_match_patch.DIFF_EQUAL
-            ops.push(new RetainOp(originalLength, originalLength + value.length))
-            originalLength += value.length
-            finalLength += value.length
+      _.each(diff, (part) ->
+        if part.added
+          ops.push(new InsertOp(part.value))
+          finalLength += part.value.length
+        else if part.removed
+          # No op since deletes are implied
+          originalLength += part.value.length
+        else
+          ops.push(new RetainOp(originalLength, originalLength + part.value.length))
+          originalLength += part.value.length
+          finalLength += part.value.length
+      )
       insertDelta = new Delta(originalLength, finalLength, ops)
     else
       insertDelta = new Delta(0, 0, [])

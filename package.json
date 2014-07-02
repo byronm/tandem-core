@@ -1,26 +1,29 @@
 {
   "name": "tandem-core",
   "version": "0.6.1",
-  "contributors": [{
-    "name": "Jason Chen",
-    "email": "jhchen7@gmail.com"
-  }, {
-    "name": "Byron Milligan",
-    "email": "byronner@gmail.com"
-  }],
+  "contributors": [
+    {
+      "name": "Jason Chen",
+      "email": "jhchen7@gmail.com"
+    },
+    {
+      "name": "Byron Milligan",
+      "email": "byronner@gmail.com"
+    }
+  ],
   "dependencies": {
-    "googlediff"           : "0.1.x",
-    "lodash"               : "2.4.x"
+    "diff": "~1.0.8",
+    "lodash": "~2.4.1"
   },
   "devDependencies": {
-    "chai"                 : "1.9.x",
-    "coffee-script"        : "1.7.x",
-    "grunt"                : "0.4.x",
-    "grunt-contrib-clean"  : "0.5.x",
-    "grunt-contrib-coffee" : "0.10.x",
-    "grunt-contrib-watch"  : "0.6.x",
-    "istanbul"             : "0.1.x",
-    "mocha"                : "1.18.x"
+    "chai": "~1.9.1",
+    "coffee-script": "~1.7.1",
+    "grunt": "~0.4.4",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-coffee": "~0.10.1",
+    "grunt-contrib-watch": "~0.6.0",
+    "istanbul": "~0.1.46",
+    "mocha": "~1.18.2"
   },
   "main": "index",
   "engines": {
