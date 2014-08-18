@@ -50,3 +50,7 @@ To run code coverage tests:
     make cov
 
 Visit coverage/lcov-report/index.html in your browser to see the output.
+
+## License
+
+BSD 3-clause
