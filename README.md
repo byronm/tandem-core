@@ -1,6 +1,6 @@
 DEPRECATED
 ===
-This library is no longer being maintained. Please take a look at [Rich Text OTType](https://github.com/ottypes/rich-text) for a reasonable alternative.
+This library is no longer being maintained. Please take a look at [Rich Text OT Type](https://github.com/ottypes/rich-text) for a reasonable alternative.
 
 Tandem Core
 ===
