@@ -1,7 +1,6 @@
-WARNING
+DEPRECATED
 ===
-
-Please do not publicize this repository in any way. There are a few known documentation gaps and other issues we wish to address before publication. Thank you for your patience.
+This library is no longer being maintained. Please take a look at [Rich Text OTType](https://github.com/ottypes/rich-text) for a reasonable alternative.
 
 Tandem Core
 ===
